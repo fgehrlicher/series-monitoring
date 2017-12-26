@@ -3,6 +3,7 @@ services:
 
   mysql:
     image: mysql:5.7
+    container_name: serieswatchermysql
     volumes:
       - ./Ressources/Db:/var/lib/mysql
     ports:
