@@ -1,18 +1,12 @@
 
 -- -----------------------------------------------------
--- Schema serieswatcher
--- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `serieswatcher` DEFAULT CHARACTER SET utf8 ;
-USE `serieswatcher` ;
-
--- -----------------------------------------------------
 -- Table `serieswatcher`.`FileFormat`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `serieswatcher`.`FileFormat` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `Type` VARCHAR(45) NULL,
   PRIMARY KEY (`id`))
-ENGINE = InnoDB;
+  ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- -----------------------------------------------------
@@ -25,11 +19,11 @@ CREATE TABLE IF NOT EXISTS `serieswatcher`.`Image` (
   PRIMARY KEY (`id`),
   INDEX `fk_Image_FileFormat1_idx` (`FileFormat_id` ASC),
   CONSTRAINT `fk_Image_FileFormat1`
-    FOREIGN KEY (`FileFormat_id`)
-    REFERENCES `serieswatcher`.`FileFormat` (`id`)
+  FOREIGN KEY (`FileFormat_id`)
+  REFERENCES `serieswatcher`.`FileFormat` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- -----------------------------------------------------
@@ -44,11 +38,11 @@ CREATE TABLE IF NOT EXISTS `serieswatcher`.`Series` (
   PRIMARY KEY (`id`),
   INDEX `fk_Series_Image1_idx` (`Image_id` ASC),
   CONSTRAINT `fk_Series_Image1`
-    FOREIGN KEY (`Image_id`)
-    REFERENCES `serieswatcher`.`Image` (`id`)
+  FOREIGN KEY (`Image_id`)
+  REFERENCES `serieswatcher`.`Image` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- -----------------------------------------------------
@@ -62,11 +56,11 @@ CREATE TABLE IF NOT EXISTS `serieswatcher`.`Provider` (
   PRIMARY KEY (`id`),
   INDEX `fk_Provider_Image1_idx` (`Image_id` ASC),
   CONSTRAINT `fk_Provider_Image1`
-    FOREIGN KEY (`Image_id`)
-    REFERENCES `serieswatcher`.`Image` (`id`)
+  FOREIGN KEY (`Image_id`)
+  REFERENCES `serieswatcher`.`Image` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- -----------------------------------------------------
@@ -85,16 +79,16 @@ CREATE TABLE IF NOT EXISTS `serieswatcher`.`Episode` (
   INDEX `fk_Episode_Series1_idx` (`Series_id` ASC),
   INDEX `fk_Episode_Image1_idx` (`Image_id` ASC),
   CONSTRAINT `fk_Episode_Series1`
-    FOREIGN KEY (`Series_id`)
-    REFERENCES `serieswatcher`.`Series` (`id`)
+  FOREIGN KEY (`Series_id`)
+  REFERENCES `serieswatcher`.`Series` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_Episode_Image1`
-    FOREIGN KEY (`Image_id`)
-    REFERENCES `serieswatcher`.`Image` (`id`)
+  FOREIGN KEY (`Image_id`)
+  REFERENCES `serieswatcher`.`Image` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- -----------------------------------------------------
@@ -104,7 +98,7 @@ CREATE TABLE IF NOT EXISTS `serieswatcher`.`Credentials` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `Password` VARCHAR(255) NULL,
   PRIMARY KEY (`id`))
-ENGINE = InnoDB;
+  ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- -----------------------------------------------------
@@ -117,11 +111,11 @@ CREATE TABLE IF NOT EXISTS `serieswatcher`.`User` (
   PRIMARY KEY (`id`),
   INDEX `fk_User_Credentials1_idx` (`Credentials_id` ASC),
   CONSTRAINT `fk_User_Credentials1`
-    FOREIGN KEY (`Credentials_id`)
-    REFERENCES `serieswatcher`.`Credentials` (`id`)
+  FOREIGN KEY (`Credentials_id`)
+  REFERENCES `serieswatcher`.`Credentials` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- -----------------------------------------------------
@@ -135,39 +129,39 @@ CREATE TABLE IF NOT EXISTS `serieswatcher`.`WatchPointer` (
   INDEX `fk_WatchPointer_User_idx` (`User_id` ASC),
   INDEX `fk_WatchPointer_Episode1_idx` (`Episode_id` ASC),
   CONSTRAINT `fk_WatchPointer_User`
-    FOREIGN KEY (`User_id`)
-    REFERENCES `serieswatcher`.`User` (`id`)
+  FOREIGN KEY (`User_id`)
+  REFERENCES `serieswatcher`.`User` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_WatchPointer_Episode1`
-    FOREIGN KEY (`Episode_id`)
-    REFERENCES `serieswatcher`.`Episode` (`id`)
+  FOREIGN KEY (`Episode_id`)
+  REFERENCES `serieswatcher`.`Episode` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- -----------------------------------------------------
 -- Table `serieswatcher`.`ProviderUrl`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `serieswatcher`.`ProviderUrl` (
-  `Episode_id` INT NOT NULL AUTO_INCREMENT,
+  `Episode_id` INT NOT NULL,
   `Provider_id` INT NOT NULL,
   `Url` VARCHAR(100) NULL,
   PRIMARY KEY (`Episode_id`, `Provider_id`),
   INDEX `fk_Episode_has_Provider_Provider1_idx` (`Provider_id` ASC),
   INDEX `fk_Episode_has_Provider_Episode1_idx` (`Episode_id` ASC),
   CONSTRAINT `fk_Episode_has_Provider_Episode1`
-    FOREIGN KEY (`Episode_id`)
-    REFERENCES `serieswatcher`.`Episode` (`id`)
+  FOREIGN KEY (`Episode_id`)
+  REFERENCES `serieswatcher`.`Episode` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_Episode_has_Provider_Provider1`
-    FOREIGN KEY (`Provider_id`)
-    REFERENCES `serieswatcher`.`Provider` (`id`)
+  FOREIGN KEY (`Provider_id`)
+  REFERENCES `serieswatcher`.`Provider` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- -----------------------------------------------------
@@ -184,21 +178,21 @@ CREATE TABLE IF NOT EXISTS `serieswatcher`.`ThirdPartyAccount` (
   INDEX `fk_Account_User1_idx` (`User_id` ASC),
   INDEX `fk_ThirdPartyAccount_Credentials1_idx` (`Credentials_id` ASC),
   CONSTRAINT `fk_Account_Provider1`
-    FOREIGN KEY (`Provider_id`)
-    REFERENCES `serieswatcher`.`Provider` (`id`)
+  FOREIGN KEY (`Provider_id`)
+  REFERENCES `serieswatcher`.`Provider` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_Account_User1`
-    FOREIGN KEY (`User_id`)
-    REFERENCES `serieswatcher`.`User` (`id`)
+  FOREIGN KEY (`User_id`)
+  REFERENCES `serieswatcher`.`User` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_ThirdPartyAccount_Credentials1`
-    FOREIGN KEY (`Credentials_id`)
-    REFERENCES `serieswatcher`.`Credentials` (`id`)
+  FOREIGN KEY (`Credentials_id`)
+  REFERENCES `serieswatcher`.`Credentials` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- -----------------------------------------------------
@@ -212,16 +206,16 @@ CREATE TABLE IF NOT EXISTS `serieswatcher`.`ProviderUrl` (
   INDEX `fk_Episode_has_Provider_Provider1_idx` (`Provider_id` ASC),
   INDEX `fk_Episode_has_Provider_Episode1_idx` (`Episode_id` ASC),
   CONSTRAINT `fk_Episode_has_Provider_Episode1`
-    FOREIGN KEY (`Episode_id`)
-    REFERENCES `serieswatcher`.`Episode` (`id`)
+  FOREIGN KEY (`Episode_id`)
+  REFERENCES `serieswatcher`.`Episode` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_Episode_has_Provider_Provider1`
-    FOREIGN KEY (`Provider_id`)
-    REFERENCES `serieswatcher`.`Provider` (`id`)
+  FOREIGN KEY (`Provider_id`)
+  REFERENCES `serieswatcher`.`Provider` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- -----------------------------------------------------
@@ -234,13 +228,36 @@ CREATE TABLE IF NOT EXISTS `serieswatcher`.`SeriesProvider` (
   INDEX `fk_Series_has_Provider_Provider1_idx` (`Provider_id` ASC),
   INDEX `fk_Series_has_Provider_Series1_idx` (`Series_id` ASC),
   CONSTRAINT `fk_Series_has_Provider_Series1`
-    FOREIGN KEY (`Series_id`)
-    REFERENCES `serieswatcher`.`Series` (`id`)
+  FOREIGN KEY (`Series_id`)
+  REFERENCES `serieswatcher`.`Series` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_Series_has_Provider_Provider1`
-    FOREIGN KEY (`Provider_id`)
-    REFERENCES `serieswatcher`.`Provider` (`id`)
+  FOREIGN KEY (`Provider_id`)
+  REFERENCES `serieswatcher`.`Provider` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `serieswatcher`.`errorLog`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `serieswatcher`.`errorLog` (
+  `id` INT NOT NULL,
+  `message` VARCHAR(500) NULL,
+  `created` DATETIME NULL,
+  PRIMARY KEY (`id`))
+  ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `serieswatcher`.`workQueue`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `serieswatcher`.`workQueue` (
+  `id` INT NOT NULL,
+  `jobType` VARCHAR(45) NULL,
+  `parameter` VARCHAR(100) NULL,
+  `time` DATETIME NULL,
+  PRIMARY KEY (`id`))
+  ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
