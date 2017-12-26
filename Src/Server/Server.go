@@ -13,8 +13,9 @@ func Init() {
 
 	var err error
 	settings, err = Config.GetConfiguration()
-	panic(err.Error())
-
+	if err != nil {
+		panic(err.Error())
+	}
 	router := mux.NewRouter()
 	ip := settings.ServerSettings.Ip
 	port := settings.ServerSettings.Port
