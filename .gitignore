@@ -1,1 +1,3 @@
 Ressources/Db
+Backup/*
+!Backup/.gitkeep
