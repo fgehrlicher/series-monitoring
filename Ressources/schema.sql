@@ -7,13 +7,12 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
--- Schema mydb
-USE `mydb` ;
+USE `series` ;
 
 -- -----------------------------------------------------
--- Table `mydb`.`Image`
+-- Table `series`.`Image`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Image` (
+CREATE TABLE IF NOT EXISTS `series`.`Image` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `Path` VARCHAR(255) NULL,
   `OriginUrl` VARCHAR(45) NULL,
@@ -22,9 +21,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`Series`
+-- Table `series`.`Series`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Series` (
+CREATE TABLE IF NOT EXISTS `series`.`Series` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `Title` VARCHAR(255) NULL,
   `Image_id` INT NOT NULL,
@@ -34,16 +33,16 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Series` (
   INDEX `fk_Series_Image1_idx` (`Image_id` ASC),
   CONSTRAINT `fk_Series_Image1`
     FOREIGN KEY (`Image_id`)
-    REFERENCES `mydb`.`Image` (`id`)
+    REFERENCES `series`.`Image` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`Provider`
+-- Table `series`.`Provider`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Provider` (
+CREATE TABLE IF NOT EXISTS `series`.`Provider` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `Name` VARCHAR(255) NULL,
   `Image_id` INT NOT NULL,
@@ -51,16 +50,16 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Provider` (
   INDEX `fk_Provider_Image1_idx` (`Image_id` ASC),
   CONSTRAINT `fk_Provider_Image1`
     FOREIGN KEY (`Image_id`)
-    REFERENCES `mydb`.`Image` (`id`)
+    REFERENCES `series`.`Image` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`Episode`
+-- Table `series`.`Episode`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Episode` (
+CREATE TABLE IF NOT EXISTS `series`.`Episode` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `Series_id` INT NOT NULL,
   `Image_id` INT NOT NULL,
@@ -74,21 +73,21 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Episode` (
   INDEX `fk_Episode_Image1_idx` (`Image_id` ASC),
   CONSTRAINT `fk_Episode_Series1`
     FOREIGN KEY (`Series_id`)
-    REFERENCES `mydb`.`Series` (`id`)
+    REFERENCES `series`.`Series` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_Episode_Image1`
     FOREIGN KEY (`Image_id`)
-    REFERENCES `mydb`.`Image` (`id`)
+    REFERENCES `series`.`Image` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`Credentials`
+-- Table `series`.`Credentials`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Credentials` (
+CREATE TABLE IF NOT EXISTS `series`.`Credentials` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `Password` VARCHAR(255) NULL,
   PRIMARY KEY (`id`))
@@ -96,9 +95,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`User`
+-- Table `series`.`User`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`User` (
+CREATE TABLE IF NOT EXISTS `series`.`User` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `Name` VARCHAR(255) NULL,
   `Credentials_id` INT NOT NULL,
@@ -106,16 +105,16 @@ CREATE TABLE IF NOT EXISTS `mydb`.`User` (
   INDEX `fk_User_Credentials1_idx` (`Credentials_id` ASC),
   CONSTRAINT `fk_User_Credentials1`
     FOREIGN KEY (`Credentials_id`)
-    REFERENCES `mydb`.`Credentials` (`id`)
+    REFERENCES `series`.`Credentials` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`WatchPointer`
+-- Table `series`.`WatchPointer`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`WatchPointer` (
+CREATE TABLE IF NOT EXISTS `series`.`WatchPointer` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `User_id` INT NOT NULL,
   `Episode_id` INT NOT NULL,
@@ -124,21 +123,21 @@ CREATE TABLE IF NOT EXISTS `mydb`.`WatchPointer` (
   INDEX `fk_WatchPointer_Episode1_idx` (`Episode_id` ASC),
   CONSTRAINT `fk_WatchPointer_User`
     FOREIGN KEY (`User_id`)
-    REFERENCES `mydb`.`User` (`id`)
+    REFERENCES `series`.`User` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_WatchPointer_Episode1`
     FOREIGN KEY (`Episode_id`)
-    REFERENCES `mydb`.`Episode` (`id`)
+    REFERENCES `series`.`Episode` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`ThirdPartyAccount`
+-- Table `series`.`ThirdPartyAccount`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`ThirdPartyAccount` (
+CREATE TABLE IF NOT EXISTS `series`.`ThirdPartyAccount` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `Provider_id` INT NOT NULL,
   `User_id` INT NOT NULL,
@@ -150,26 +149,26 @@ CREATE TABLE IF NOT EXISTS `mydb`.`ThirdPartyAccount` (
   INDEX `fk_ThirdPartyAccount_Credentials1_idx` (`Credentials_id` ASC),
   CONSTRAINT `fk_Account_Provider1`
     FOREIGN KEY (`Provider_id`)
-    REFERENCES `mydb`.`Provider` (`id`)
+    REFERENCES `series`.`Provider` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_Account_User1`
     FOREIGN KEY (`User_id`)
-    REFERENCES `mydb`.`User` (`id`)
+    REFERENCES `series`.`User` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_ThirdPartyAccount_Credentials1`
     FOREIGN KEY (`Credentials_id`)
-    REFERENCES `mydb`.`Credentials` (`id`)
+    REFERENCES `series`.`Credentials` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`ProviderUrl`
+-- Table `series`.`ProviderUrl`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`ProviderUrl` (
+CREATE TABLE IF NOT EXISTS `series`.`ProviderUrl` (
   `Episode_id` INT NOT NULL AUTO_INCREMENT,
   `Provider_id` INT NOT NULL,
   `Url` VARCHAR(100) NULL,
@@ -178,21 +177,21 @@ CREATE TABLE IF NOT EXISTS `mydb`.`ProviderUrl` (
   INDEX `fk_Episode_has_Provider_Episode1_idx` (`Episode_id` ASC),
   CONSTRAINT `fk_Episode_has_Provider_Episode1`
     FOREIGN KEY (`Episode_id`)
-    REFERENCES `mydb`.`Episode` (`id`)
+    REFERENCES `series`.`Episode` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_Episode_has_Provider_Provider1`
     FOREIGN KEY (`Provider_id`)
-    REFERENCES `mydb`.`Provider` (`id`)
+    REFERENCES `series`.`Provider` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`SeriesProvider`
+-- Table `series`.`SeriesProvider`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`SeriesProvider` (
+CREATE TABLE IF NOT EXISTS `series`.`SeriesProvider` (
   `Series_id` INT NOT NULL AUTO_INCREMENT,
   `Provider_id` INT NOT NULL,
   `BaseUrl` VARCHAR(255) NULL,
@@ -201,21 +200,21 @@ CREATE TABLE IF NOT EXISTS `mydb`.`SeriesProvider` (
   INDEX `fk_Series_has_Provider_Series1_idx` (`Series_id` ASC),
   CONSTRAINT `fk_Series_has_Provider_Series1`
     FOREIGN KEY (`Series_id`)
-    REFERENCES `mydb`.`Series` (`id`)
+    REFERENCES `series`.`Series` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_Series_has_Provider_Provider1`
     FOREIGN KEY (`Provider_id`)
-    REFERENCES `mydb`.`Provider` (`id`)
+    REFERENCES `series`.`Provider` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`Log`
+-- Table `series`.`Log`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Log` (
+CREATE TABLE IF NOT EXISTS `series`.`Log` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `Message` VARCHAR(45) NULL,
   PRIMARY KEY (`id`))
@@ -223,9 +222,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`ManualAction`
+-- Table `series`.`ManualAction`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`ManualAction` (
+CREATE TABLE IF NOT EXISTS `series`.`ManualAction` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `Type` VARCHAR(255) NULL,
   `Parameter` VARCHAR(500) NULL,
