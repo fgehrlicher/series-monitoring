@@ -4,7 +4,7 @@
     "port": "3306",
     "user": "root",
     "password": "root",
-    "database": "serieswatcher"
+    "database": "series"
   },
   "server": {
     "ip": "0.0.0.0",

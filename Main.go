@@ -1,8 +1,8 @@
 package main
 
 import (
-	"./Server"
 	"time"
+	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher"
 )
 
 func main() {

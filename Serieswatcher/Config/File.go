@@ -30,7 +30,7 @@ type Settings struct {
 
 func GetConfiguration() (Settings, error) {
 	var settings Settings
-	configFile, err := os.Open("config.json")
+	configFile, err := os.Open("./config.json")
 	defer configFile.Close()
 	if err != nil {
 		return settings, err

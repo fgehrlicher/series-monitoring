@@ -3,7 +3,7 @@ RUN mkdir /app
 RUN go get github.com/gorilla/mux
 RUN go get github.com/go-sql-driver/mysql
 RUN go get github.com/fatih/color
-ADD Src/. /app/
+ADD . /app/
 WORKDIR /app
 RUN go build -o main .
 CMD ["/app/main"]
