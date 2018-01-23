@@ -44,10 +44,6 @@ func GetConfiguration() (Settings, error) {
 	if err != nil {
 		return settings, err
 	}
-	err = testConnection(settings)
-	if err != nil {
-		return settings, err
-	}
 	return settings, nil
 }
 
@@ -79,10 +75,13 @@ func validate(settings *Settings) error {
 	if settings.DatabaseSettings.Password == "" {
 		settings.DatabaseSettings.Password = "root"
 	}
+	if err := testConnection(settings); err != nil {
+		return err
+	}
 	return nil
 }
 
-func testConnection(settings Settings) error {
+func testConnection(settings *Settings) error {
 	dataSourceName := settings.DatabaseSettings.User + ":" +
 		settings.DatabaseSettings.Password + "@" +
 		"tcp(" + settings.DatabaseSettings.Host + ":" + settings.DatabaseSettings.Port + ")/" +
