@@ -5,6 +5,11 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"github.com/fatih/color"
+	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Endpoints"
+	"time"
+	"os"
+	"os/signal"
+	"context"
 )
 
 func Init() {
@@ -12,38 +17,39 @@ func Init() {
 	if err != nil {
 		panic(err.Error())
 	}
+
 	router := mux.NewRouter()
 	ip := settings.ServerSettings.Ip
 	port := settings.ServerSettings.Port
 
 	router.StrictSlash(true)
-	AttachEndpoints(router)
+	Endpoints.AttachEndpoints(router)
+
+	server := &http.Server{
+		Addr:         ip + ":" + port,
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
+		Handler:      router,
+	}
+
 	color.Green("Server listening on: " + ip + ":" + port)
-	panic(http.ListenAndServe(ip+":"+port, router))
-}
 
-func AttachEndpoints(router *mux.Router) {
+	go func() {
+		if err := server.ListenAndServe(); err != nil {
+			server.ListenAndServe()
+		}
+	}()
 
-	/*
-	router.HandleFunc("/functions/update-series/{series-name}", updateSeries).Methods("POST")
-	router.HandleFunc("/functions/update-series/*", updateAllSeries).Methods("POST")
-	router.HandleFunc("/functions/process-queue/", processQueue).Methods("POST")
+	osSignalChannel := make(chan os.Signal, 1)
+	signal.Notify(osSignalChannel, os.Interrupt)
 
-	router.HandleFunc("/provider/", getAllProvider).Methods("GET")
-	router.HandleFunc("/provider/{provider}/image", getProviderImage).Methods("GET")
+	<-osSignalChannel
 
-	router.HandleFunc("/series/", getAllSeries).Methods("GET")
-	router.HandleFunc("/series/{series}/", getSeries).Methods("GET")
-	router.HandleFunc("/series/{series}/", createSeries).Methods("POST")
-	router.HandleFunc("/series/{series}/", updateSeries).Methods("PUT")
-
-	router.HandleFunc("/series/{series}/", deleteSeries).Methods("DELETE")
-	router.HandleFunc("/series/{series}/pointer", deleteSeries).Methods("GET")
-	router.HandleFunc("/series/{series}/pointer", movePointer).Methods("POST")
-	router.HandleFunc("/series/{series}/image", getSeriesImage).Methods("GET")
-	router.HandleFunc("/series/{series}/unwatched-episode/", getUnwatchedEpisodes).Methods("GET")
-	router.HandleFunc("/series/{series}/episode/{season}/{episode}/", getEpisode).Methods("GET")
-	router.HandleFunc("/series/{series}/episode/{season}/{episode}/image", getEpisodeImage).Methods("GET")
-	*/
+	ctx, cancelFunction := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancelFunction()
+	server.Shutdown(ctx)
+	color.Green("shutting down")
+	os.Exit(0)
 
 }

@@ -19,13 +19,18 @@ type DatabaseSettings struct {
 }
 
 type ServerSettings struct {
-	Ip   string `json:"ip"`
-	Port string `json:"port"`
+	Ip        string `json:"ip"`
+	Port      string `json:"port"`
+	ImagePath string `json:"image-base-dir"`
 }
 
 type Settings struct {
 	DatabaseSettings DatabaseSettings `json:"database"`
 	ServerSettings   ServerSettings   `json:"server"`
+}
+
+func Error() error {
+	return errors.New("configuration error")
 }
 
 func GetConfiguration() (Settings, error) {
@@ -87,6 +92,7 @@ func testConnection(settings *Settings) error {
 		"tcp(" + settings.DatabaseSettings.Host + ":" + settings.DatabaseSettings.Port + ")/" +
 		settings.DatabaseSettings.Database
 	db, err := sql.Open("mysql", dataSourceName)
+	defer db.Close()
 	if err != nil {
 		return err
 	}
