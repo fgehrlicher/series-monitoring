@@ -23,7 +23,7 @@ USE `series` ;
 CREATE TABLE IF NOT EXISTS `series`.`Image` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `Path` VARCHAR(255) NULL,
-  `OriginUrl` VARCHAR(45) NULL,
+  `OriginUrl` VARCHAR(500) NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
@@ -209,8 +209,11 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `series`.`Log` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `Type` VARCHAR(45) NULL,
-  `Message` VARCHAR(45) NULL,
+  `Type` INT NULL,
+  `StatusCode` INT NULL,
+  `RequestUri` VARCHAR(255) NULL,
+  `Caller` VARCHAR(255) NULL,
+  `Message` VARCHAR(1000) NULL,
   `Time` DATETIME NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
