@@ -33,6 +33,40 @@ func NotFoundHandler(responseWriter http.ResponseWriter, request *http.Request) 
 Returns:
 
 {
+   "message": "Custom Error Message"
+}
+ */
+func NotFoundErrorHandler(responseWriter http.ResponseWriter, request *http.Request, err error) {
+	handleError(
+		responseWriter,
+		request,
+		err,
+		http.StatusNotFound,
+		Models.LogTypeWarning,
+	)
+}
+
+/*
+Returns:
+
+{
+   "message": "Not Found"
+}
+ */
+func BadRequestHandler(responseWriter http.ResponseWriter, request *http.Request) {
+	handleError(
+		responseWriter,
+		request,
+		errors.New(http.StatusText(http.StatusBadRequest)),
+		http.StatusBadRequest,
+		Models.LogTypeWarning,
+	)
+}
+
+/*
+Returns:
+
+{
    "message": "Method Not Allowed"
 }
  */

@@ -33,10 +33,9 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `series`.`Series` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `Title` VARCHAR(255) NULL,
   `Image_id` INT NOT NULL,
+  `Title` VARCHAR(255) NULL,
   `ProviderUrl` VARCHAR(255) NULL,
-  `ProviderType` VARCHAR(45) NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_Series_Image_idx` (`Image_id` ASC),
   CONSTRAINT `fk_Series_Image`

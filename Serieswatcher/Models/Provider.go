@@ -25,7 +25,7 @@ func (repository *ProviderRepository) GetAll() ([]Provider, error) {
 		ProviderTableName + ".`id`, " +
 		ProviderTableName + ".`Name`, " +
 		ProviderTableName + ".`Image_id`," +
-		ImageTableName + " .`RelativePath` " +
+		ImageTableName + " .`Path` " +
 		"FROM " + ProviderTableName + " LEFT JOIN " + ImageTableName +
 		" ON " + ProviderTableName + ".`Image_id` = " + ImageTableName + ".`id`"
 	row, err := repository.Db.Query(query)

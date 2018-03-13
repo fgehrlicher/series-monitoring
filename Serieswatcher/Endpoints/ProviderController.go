@@ -30,7 +30,7 @@ import (
   }
 ]
  */
-func GetAllProvider(response http.ResponseWriter, request *http.Request) {
+func GetAllProviders(response http.ResponseWriter, request *http.Request) {
 	_, database := getSettingsAndDatabase(response, request)
 	defer database.Close()
 	providerRepository := Models.ProviderRepository{Db: database}
@@ -97,11 +97,12 @@ func GetProviderImage(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 	image := Models.Image{RelativePath: provider.ImagePath, Settings: settings}
-	err = image.LoadImageFromFile()
+	err = image.LoadImageFromFile(Models.ImageProvider)
 	if err != nil {
 		NotFoundHandler(response, request)
 		return
 	}
+	//@TODO other content types
 	response.Header().Set("Content-type", "image/png")
 	response.Write(image.Data)
 	logAccess(database, request)

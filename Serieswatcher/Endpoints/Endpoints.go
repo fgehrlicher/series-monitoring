@@ -34,36 +34,31 @@ func AttachEndpoints(router *mux.Router) {
 	router.HandleFunc("/", RootEndpoint).Methods("GET")
 
 	router.HandleFunc("/logs/", GetAllLogs).Methods("GET")
-	router.HandleFunc("/logs/{since:[0-9]+}", GetLogsSince).Methods("GET")
 	router.HandleFunc("/logs/message/", GetAllMessages).Methods("GET")
 	router.HandleFunc("/logs/warning/", GetAllWarnings).Methods("GET")
 	router.HandleFunc("/logs/error/", GetAllErrors).Methods("GET")
-	router.HandleFunc("/logs/message/{since:[0-9]+}", GetMessagesSince).Methods("GET")
-	router.HandleFunc("/logs/warning/{since:[0-9]+}", GetWarningsSince).Methods("GET")
-	router.HandleFunc("/logs/error/{since:[0-9]+}", GetErrorsSince).Methods("GET")
 
-	router.HandleFunc("/provider/", GetAllProvider).Methods("GET")
+	router.HandleFunc("/provider/", GetAllProviders).Methods("GET")
 	router.HandleFunc("/provider/{provider}", GetProvider).Methods("GET")
-	router.HandleFunc("/provider/{provider}/image", GetProviderImage).Methods("GET")
+	router.HandleFunc("/provider/{provider}/", GetProviderImage).Methods("GET")
 
-	/*
-		router.HandleFunc("/series/", getAllSeries).Methods("GET")
-		router.HandleFunc("/series/{series}/", getSeries).Methods("GET")
-		router.HandleFunc("/series/{series}/", createSeries).Methods("POST")
-		router.HandleFunc("/series/{series}/", updateSeries).Methods("PUT")
+	router.HandleFunc("/series/", GetAllSeries).Methods("GET")
+	router.HandleFunc("/series/{series}/", CreateSeries).Methods("POST")
+	router.HandleFunc("/series/{series}/", GetSeries).Methods("GET")
+	router.HandleFunc("/series/{series}/image", GetSeriesImage).Methods("GET")
+	/*router.HandleFunc("/series/{series}/", updateSeries).Methods("PUT")
+	router.HandleFunc("/series/{series}/", deleteSeries).Methods("DELETE")
 
-		router.HandleFunc("/series/{series}/", deleteSeries).Methods("DELETE")
-		router.HandleFunc("/series/{series}/pointer", deleteSeries).Methods("GET")
-		router.HandleFunc("/series/{series}/pointer", movePointer).Methods("POST")
-		router.HandleFunc("/series/{series}/image", getSeriesImage).Methods("GET")
-		router.HandleFunc("/series/{series}/unwatched-episode/", getUnwatchedEpisodes).Methods("GET")
-		router.HandleFunc("/series/{series}/episode/{season}/{episode}/", getEpisode).Methods("GET")
-		router.HandleFunc("/series/{series}/episode/{season}/{episode}/image", getEpisodeImage).Methods("GET")
+	router.HandleFunc("/series/{series}/pointer", deleteSeries).Methods("GET")
+	router.HandleFunc("/series/{series}/pointer", movePointer).Methods("POST")
+	router.HandleFunc("/series/{series}/unwatched-episode/", getUnwatchedEpisodes).Methods("GET")
+	router.HandleFunc("/series/{series}/episode/{season}/{episode}/", getEpisode).Methods("GET")
+	router.HandleFunc("/series/{series}/episode/{season}/{episode}/image", getEpisodeImage).Methods("GET")
 
-		router.HandleFunc("/functions/update-series/{series-name}", updateSeries).Methods("POST")
-		router.HandleFunc("/functions/update-series/*", updateAllSeries).Methods("POST")
-		router.HandleFunc("/functions/process-queue/", processQueue).Methods("POST")
-		*/
+	router.HandleFunc("/functions/update-series/{series-name}", updateSeries).Methods("POST")
+	router.HandleFunc("/functions/update-series/*", updateAllSeries).Methods("POST")
+	router.HandleFunc("/functions/process-queue/", processQueue).Methods("POST")
+	*/
 
 }
 
