@@ -1,9 +1,10 @@
 package Parser
 
+import "bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
+
 const (
-	TMDbBaseUrl       = "https://www.themoviedb.org"
 	CoverImagesPath   = "Series/"
-	EpisodeImagesPath = "Series/"
+	EpisodeImagesPath = "Episode/"
 )
 
 type ParserError struct {
@@ -19,7 +20,10 @@ func NewError(text string) *ParserError {
 }
 
 type SeriesDataProvider interface {
-	init() error
-	GetSeriesTitle() (string, error)
-	GetSeriesCover() (string, error)
+	GetSeries() (*Models.Series, error)
+	GetAllNewEpisodes(Models.Episode) ([]Models.Episode, error)
+	GetEpisode(season int, episode int) (*Models.Episode, error, error)
+}
+
+type SeriesContentProvider interface {
 }

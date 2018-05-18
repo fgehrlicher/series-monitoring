@@ -13,6 +13,7 @@ import (
 
 const (
 	ImageTableName         = "Image"
+	ImageBasicSelectQuery  = "SELECT " + ImageTableName + ".`id`, " + ImageTableName + ".`OriginUrl`, " + ImageTableName + ".`Path` FROM " + ImageTableName
 	ImageDummyProviderPath = "Ressources/dummyProvider.png"
 	ImageDummyEpisodePath  = "Ressources/dummyEpisode.png"
 	ImageDummySeriesPath   = "Ressources/dummySeries.png"
@@ -21,22 +22,25 @@ const (
 	ImageSeries            = 3
 )
 
+type ImageRepository struct {
+	Db *sql.DB
+}
 type Image struct {
-	OriginURL    string
+	ID           int64
 	RelativePath string
-	AbsolutePath string
-	ID           int
+	OriginURL    string
 	Data         []byte
-	Settings     Config.Settings
+	ImageType    int
 }
 
-func (imageStruct *Image) LoadImageFromFile(imageType int) error {
+func (imageStruct *Image) LoadFromFile() error {
 	if imageStruct.RelativePath == "" {
 		errors.New("No Image Path")
 	}
-	imageStruct.AbsolutePath = path.Join(imageStruct.Settings.ServerSettings.ImagePath, imageStruct.RelativePath)
+	configuration, _ := Config.GetConfiguration()
+	absolutePath := path.Join(configuration.ServerSettings.ImagePath, imageStruct.RelativePath)
 	if !imageStruct.Exists() {
-		dummyImagePath, dummyImagePathError := getDummyImagePath(imageType)
+		dummyImagePath, dummyImagePathError := getDummyImagePath(imageStruct.ImageType)
 		if dummyImagePathError != nil {
 			return dummyImagePathError
 		}
@@ -47,7 +51,7 @@ func (imageStruct *Image) LoadImageFromFile(imageType int) error {
 		imageStruct.Data = imageFile
 		return nil
 	}
-	imageData, err := ioutil.ReadFile(imageStruct.AbsolutePath)
+	imageData, err := ioutil.ReadFile(absolutePath)
 	if err != nil {
 		return err
 	}
@@ -55,11 +59,13 @@ func (imageStruct *Image) LoadImageFromFile(imageType int) error {
 	return nil
 }
 
-func (imageStruct *Image) Create(data io.ReadCloser) error {
-	if imageStruct.AbsolutePath == "" {
-		imageStruct.AbsolutePath = path.Join(imageStruct.Settings.ServerSettings.ImagePath, imageStruct.RelativePath)
+func (imageStruct *Image) CreateFile(data io.ReadCloser) error {
+	configuration, _ := Config.GetConfiguration()
+	absolutePath := path.Join(configuration.ServerSettings.ImagePath, imageStruct.RelativePath)
+	if imageStruct.Exists() {
+		imageStruct.Delete()
 	}
-	file, err := os.Create(imageStruct.AbsolutePath)
+	file, err := os.Create(absolutePath)
 	if err != nil {
 		return err
 	}
@@ -72,18 +78,16 @@ func (imageStruct *Image) Create(data io.ReadCloser) error {
 }
 
 func (imageStruct *Image) Exists() bool {
-	if imageStruct.AbsolutePath == "" {
-		imageStruct.AbsolutePath = path.Join(imageStruct.Settings.ServerSettings.ImagePath, imageStruct.RelativePath)
-	}
-	_, err := os.Stat(imageStruct.AbsolutePath)
+	configuration, _ := Config.GetConfiguration()
+	absolutePath := path.Join(configuration.ServerSettings.ImagePath, imageStruct.RelativePath)
+	_, err := os.Stat(absolutePath)
 	return err == nil
 }
 
 func (imageStruct *Image) Delete() error {
-	if imageStruct.AbsolutePath == "" {
-		imageStruct.AbsolutePath = path.Join(imageStruct.Settings.ServerSettings.ImagePath, imageStruct.RelativePath)
-	}
-	err := os.Remove(imageStruct.AbsolutePath)
+	configuration, _ := Config.GetConfiguration()
+	absolutePath := path.Join(configuration.ServerSettings.ImagePath, imageStruct.RelativePath)
+	err := os.Remove(absolutePath)
 	if err != nil {
 		return err
 	}
@@ -103,28 +107,39 @@ func getDummyImagePath(imageType int) (string, error) {
 	return filepath.Abs(imagePath)
 }
 
-const ImageBasicSelectQuery = "SELECT " + ImageTableName + ".`id`, " + ImageTableName + ".`OriginUrl`, " + ImageTableName + ".`Path` FROM " + ImageTableName
+func (repository *ImageRepository) Persist(image Image) (int64, error) {
 
-type ImageRepository struct {
-	Db *sql.DB
-}
+	existingImage, _ := repository.GetByPath(image.RelativePath)
+	if existingImage.ID > 0 {
+		return existingImage.ID, nil
+	}
 
-func (repository *ImageRepository) Persist(image Image) error {
 	query := "INSERT INTO " + ImageTableName + " (OriginUrl, Path) VALUES (?, ?)"
-	_, err := repository.Db.Exec(
+	res, err := repository.Db.Exec(
 		query,
 		image.OriginURL,
 		image.RelativePath,
 	)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
 }
 
-func (repository *ImageRepository) GetByPath(path string) (Image, error) {
+func (repository *ImageRepository) GetByPath(path string) (*Image, error) {
 	var image Image
 	query := ImageBasicSelectQuery + " WHERE " + ImageTableName + ".`Path` = ?"
 	err := repository.Db.QueryRow(query, path).Scan(&image.ID, &image.OriginURL, &image.RelativePath)
-	return image, err
+	return &image, err
+}
+
+func (repository *ImageRepository) GetById(id int64) (*Image, error) {
+	var image Image
+	query := ImageBasicSelectQuery + " WHERE " + ImageTableName + ".`id` = ?"
+	err := repository.Db.QueryRow(query, id).Scan(&image.ID, &image.OriginURL, &image.RelativePath)
+	return &image, err
 }

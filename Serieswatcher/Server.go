@@ -15,7 +15,8 @@ import (
 func Init() {
 	settings, err := Config.GetConfiguration()
 	if err != nil {
-		panic(err.Error())
+		color.Red(err.Error())
+		os.Exit(1)
 	}
 
 	router := mux.NewRouter()
@@ -23,7 +24,35 @@ func Init() {
 	port := settings.ServerSettings.Port
 
 	router.StrictSlash(true)
-	Endpoints.AttachEndpoints(router)
+
+	router.NotFoundHandler = http.HandlerFunc(Endpoints.NotFoundHandler)
+	router.MethodNotAllowedHandler = http.HandlerFunc(Endpoints.MethodNotAllowedHandler)
+
+	router.HandleFunc("/", Endpoints.RootEndpoint).Methods("GET")
+
+	router.HandleFunc("/logs/", Endpoints.GetAllLogs).Methods("GET")
+	router.HandleFunc("/logs/message/", Endpoints.GetAllMessages).Methods("GET")
+	router.HandleFunc("/logs/warning/", Endpoints.GetAllWarnings).Methods("GET")
+	router.HandleFunc("/logs/error/", Endpoints.GetAllErrors).Methods("GET")
+
+	router.HandleFunc("/provider/", Endpoints.GetAllProviders).Methods("GET")
+	router.HandleFunc("/provider/{provider}/", Endpoints.GetProvider).Methods("GET")
+	router.HandleFunc("/provider/{provider}/image", Endpoints.GetProviderImage).Methods("GET")
+
+	router.HandleFunc("/series/", Endpoints.GetAllSeries).Methods("GET")
+	router.HandleFunc("/series/{series}/", Endpoints.GetSeries).Methods("GET")
+	router.HandleFunc("/series/{series}/image", Endpoints.GetSeriesImage).Methods("GET")
+	router.HandleFunc("/series/{series}/episodes", Endpoints.GetAllEpisodes).Methods("GET")
+	router.HandleFunc("/series/{series}/episodes/unwatched", Endpoints.GetNewEpisodes).Methods("GET")
+	router.HandleFunc("/series/{series}/season/{season}", Endpoints.GetAllEpisodesBySeason).Methods("GET")
+	router.HandleFunc("/series/{series}/season/{season}/episode/{episode}", Endpoints.GetEpisode).Methods("GET")
+	router.HandleFunc("/series/{series}/season/{season}/episode/{episode}/image", Endpoints.GetEpisodeImage).Methods("GET")
+
+	router.HandleFunc("/series/", Endpoints.CreateSeries).Methods("POST")
+	router.HandleFunc("/series/{series}/pointer", Endpoints.MovePointer).Methods("POST")
+	router.HandleFunc("/series/{series}/update", Endpoints.UpdateSeries).Methods("POST")
+
+	router.HandleFunc("/functions/update-all-series/", Endpoints.UpdateAllSeries).Methods("POST")
 
 	server := &http.Server{
 		Addr:         ip + ":" + port,

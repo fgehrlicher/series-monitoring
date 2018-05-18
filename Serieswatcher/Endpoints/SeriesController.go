@@ -8,6 +8,8 @@ import (
 	"database/sql"
 	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Parser"
 	"strings"
+	"strconv"
+	"github.com/murlokswarm/errors"
 )
 
 /*
@@ -26,7 +28,7 @@ func GetAllSeries(response http.ResponseWriter, request *http.Request) {
 	_, database := getSettingsAndDatabase(response, request)
 	defer database.Close()
 	seriesRepository := Models.SeriesRepository{Db: database}
-	series, err := seriesRepository.GetAll()
+	series, err := seriesRepository.GetAll(true)
 	if err != nil {
 		InternalServerErrorHandler(response, request, err)
 		return
@@ -50,7 +52,7 @@ func GetSeries(response http.ResponseWriter, request *http.Request) {
 	_, database := getSettingsAndDatabase(response, request)
 	defer database.Close()
 	seriesRepository := Models.SeriesRepository{Db: database}
-	series, err := seriesRepository.GetByName(seriesName)
+	series, err := seriesRepository.GetByName(seriesName, true)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			NotFoundHandler(response, request)
@@ -69,10 +71,10 @@ png/jpg image
 func GetSeriesImage(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	seriesName := vars["series"]
-	settings, database := getSettingsAndDatabase(response, request)
+	_, database := getSettingsAndDatabase(response, request)
 	defer database.Close()
 	seriesRepository := Models.SeriesRepository{Db: database}
-	series, err := seriesRepository.GetByName(seriesName)
+	series, err := seriesRepository.GetByName(seriesName, true)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			NotFoundHandler(response, request)
@@ -81,13 +83,13 @@ func GetSeriesImage(response http.ResponseWriter, request *http.Request) {
 		}
 		return
 	}
-	image := Models.Image{RelativePath: series.ImagePath, Settings: settings}
-	err = image.LoadImageFromFile(Models.ImageProvider)
+
+	err = series.Image.LoadFromFile()
 	if err != nil {
 		NotFoundHandler(response, request)
 		return
 	}
-	response.Write(image.Data)
+	response.Write(series.Image.Data)
 	logAccess(database, request)
 }
 
@@ -102,21 +104,30 @@ func GetSeriesImage(response http.ResponseWriter, request *http.Request) {
  */
 func CreateSeries(response http.ResponseWriter, request *http.Request) {
 	request.ParseForm()
-	seriesUrl, passed := request.Form["seriesUrl"]
-	if !passed || !strings.HasPrefix(seriesUrl[0], Parser.TMDbBaseUrl){
+	seriesUrlSlice, passed := request.Form["seriesUrl"]
+	if !passed {
 		BadRequestHandler(response, request)
 		return
 	}
-	settings, database := getSettingsAndDatabase(response, request)
+	seriesUrl := seriesUrlSlice[0]
+
+	if !passed || !strings.HasPrefix(seriesUrl, Parser.TMDbBaseUrl) {
+		BadRequestHandler(response, request)
+		return
+	}
+	_, database := getSettingsAndDatabase(response, request)
 	defer database.Close()
 	seriesRepository := Models.SeriesRepository{Db: database}
+	imageRepository := Models.ImageRepository{Db: database}
+	episodeRepository := Models.EpisodeRepository{Db: database}
 
-	_, err := seriesRepository.GetByProviderURL(seriesUrl[0])
-	if err == nil {
+	_, err := seriesRepository.GetByProviderURL(seriesUrl, false)
+	if err != sql.ErrNoRows {
 		BadRequestHandler(response, request)
 		return
 	}
-	handler, err := Parser.NewTMDbHandler(seriesUrl[0], settings)
+
+	handler, err := Parser.NewTMDbHandler(Models.Series{ProviderURL: seriesUrl})
 	if err != nil {
 		NotFoundErrorHandler(response, request, err)
 		return
@@ -126,16 +137,316 @@ func CreateSeries(response http.ResponseWriter, request *http.Request) {
 		InternalServerErrorHandler(response, request, err)
 		return
 	}
-	err = seriesRepository.Persist(series)
+
+	if series.Image.RelativePath != "" {
+		imageID, err := imageRepository.Persist(*series.Image)
+		if err != nil {
+			InternalServerErrorHandler(response, request, err)
+			return
+		}
+		series.Image.ID = imageID
+	}
+
+	seriesID, err := seriesRepository.Persist(*series)
 	if err != nil {
 		InternalServerErrorHandler(response, request, err)
 		return
 	}
-	newSeries, err := seriesRepository.GetByName(series.Title)
+	series.ID = seriesID
+	series.WatchPointer.Series = &Models.Series{ID: seriesID}
+
+	if series.WatchPointer.Image.ID == 0 {
+		watchpointerImageID, err := imageRepository.Persist(*series.WatchPointer.Image)
+		if err != nil {
+			InternalServerErrorHandler(response, request, err)
+			return
+		}
+		series.WatchPointer.Image.ID = watchpointerImageID
+	}
+
+	episodeID, err := episodeRepository.Persist(*series.WatchPointer)
 	if err != nil {
 		InternalServerErrorHandler(response, request, err)
 		return
 	}
-	json.NewEncoder(response).Encode(newSeries)
+	series.WatchPointer.ID = episodeID
+
+	seriesRepository.UpdateWatchPointer(series)
+
+	json.NewEncoder(response).Encode(series)
+	logAccess(database, request)
+}
+
+/*
+[
+	{
+		"ID": 391,
+		"Episode": 1,
+		"Season": 1,
+		"Title": "The Bone Orchard",
+		"Description": "When Shadow Moon is released from prison early after the death of his wife, he meets Mr. Wednesday and is recruited as his bodyguard. Shadow discovers that this may be more than he bargained for.",
+		"ReleaseDate": "2017-04-30T00:00:00Z"
+	},
+	...
+]
+*/
+func GetAllEpisodes(response http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	seriesName := vars["series"]
+	_, database := getSettingsAndDatabase(response, request)
+	defer database.Close()
+	seriesRepository := Models.SeriesRepository{Db: database}
+	episodeRepository := Models.EpisodeRepository{Db: database}
+	series, err := seriesRepository.GetByName(seriesName, false)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			NotFoundHandler(response, request)
+		} else {
+			InternalServerErrorHandler(response, request, err)
+		}
+		return
+	}
+
+	episodes, err := episodeRepository.GetAllBySeries(*series, false)
+	json.NewEncoder(response).Encode(episodes)
+	logAccess(database, request)
+}
+
+/*
+[
+	{
+		"ID": 391,
+		"Episode": 1,
+		"Season": 1,
+		"Title": "The Bone Orchard",
+		"Description": "When Shadow Moon is released from prison early after the death of his wife, he meets Mr. Wednesday and is recruited as his bodyguard. Shadow discovers that this may be more than he bargained for.",
+		"ReleaseDate": "2017-04-30T00:00:00Z"
+	},
+	...
+]
+*/
+func GetAllEpisodesBySeason(response http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	seriesName := vars["series"]
+	seasonString := vars["season"]
+	season, err := strconv.Atoi(seasonString)
+	if err != nil {
+		InternalServerErrorHandler(response, request, err)
+	}
+	_, database := getSettingsAndDatabase(response, request)
+	defer database.Close()
+	seriesRepository := Models.SeriesRepository{Db: database}
+	episodeRepository := Models.EpisodeRepository{Db: database}
+	series, err := seriesRepository.GetByName(seriesName, false)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			NotFoundHandler(response, request)
+		} else {
+			InternalServerErrorHandler(response, request, err)
+		}
+		return
+	}
+
+	episodes, err := episodeRepository.GetAllBySeriesAndSeason(*series, season, false)
+	json.NewEncoder(response).Encode(episodes)
+	logAccess(database, request)
+}
+
+/*
+{
+	"ID": 391,
+	"Episode": 1,
+	"Season": 1,
+	"Title": "The Bone Orchard",
+	"Description": "When Shadow Moon is released from prison early after the death of his wife, he meets Mr. Wednesday and is recruited as his bodyguard. Shadow discovers that this may be more than he bargained for.",
+	"ReleaseDate": "2017-04-30T00:00:00Z"
+}
+*/
+func GetEpisode(response http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	seriesName := vars["series"]
+	seasonString := vars["season"]
+	episodeString := vars["episode"]
+	season, err := strconv.Atoi(seasonString)
+	if err != nil {
+		InternalServerErrorHandler(response, request, err)
+		return
+	}
+	episode, err := strconv.Atoi(episodeString)
+	if err != nil {
+		InternalServerErrorHandler(response, request, err)
+		return
+	}
+	_, database := getSettingsAndDatabase(response, request)
+	defer database.Close()
+	seriesRepository := Models.SeriesRepository{Db: database}
+	episodeRepository := Models.EpisodeRepository{Db: database}
+	series, err := seriesRepository.GetByName(seriesName, false)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			NotFoundHandler(response, request)
+		} else {
+			InternalServerErrorHandler(response, request, err)
+		}
+		return
+	}
+
+	element, err := episodeRepository.GetOneBySeriesAndSeasonAndEpisode(*series, season, episode, false)
+	if err != nil {
+		InternalServerErrorHandler(response, request, err)
+	}
+	json.NewEncoder(response).Encode(element)
+	logAccess(database, request)
+}
+
+/*
+{
+	"ID": 391,
+	"Episode": 1,
+	"Season": 1,
+	"Title": "The Bone Orchard",
+	"Description": "When Shadow Moon is released from prison early after the death of his wife, he meets Mr. Wednesday and is recruited as his bodyguard. Shadow discovers that this may be more than he bargained for.",
+	"ReleaseDate": "2017-04-30T00:00:00Z"
+}
+*/
+func GetEpisodeImage(response http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	seriesName := vars["series"]
+	seasonString := vars["season"]
+	episodeString := vars["episode"]
+	season, err := strconv.Atoi(seasonString)
+	if err != nil {
+		InternalServerErrorHandler(response, request, err)
+	}
+	episode, err := strconv.Atoi(episodeString)
+	if err != nil {
+		InternalServerErrorHandler(response, request, err)
+	}
+	_, database := getSettingsAndDatabase(response, request)
+	defer database.Close()
+	seriesRepository := Models.SeriesRepository{Db: database}
+	episodeRepository := Models.EpisodeRepository{Db: database}
+	series, err := seriesRepository.GetByName(seriesName, false)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			NotFoundHandler(response, request)
+		} else {
+			InternalServerErrorHandler(response, request, err)
+		}
+		return
+	}
+
+	element, err := episodeRepository.GetOneBySeriesAndSeasonAndEpisode(*series, season, episode, true)
+	if err != nil {
+		NotFoundHandler(response, request)
+		return
+	}
+
+	err = element.Image.LoadFromFile()
+	if err != nil {
+		NotFoundHandler(response, request)
+		return
+	}
+	response.Write(element.Image.Data)
+	logAccess(database, request)
+}
+
+/*
+[
+	{
+		"ID": 391,
+		"Episode": 1,
+		"Season": 1,
+		"Title": "The Bone Orchard",
+		"Description": "When Shadow Moon is released from prison early after the death of his wife, he meets Mr. Wednesday and is recruited as his bodyguard. Shadow discovers that this may be more than he bargained for.",
+		"ReleaseDate": "2017-04-30T00:00:00Z"
+	},
+	...
+]
+*/
+func GetNewEpisodes(response http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	seriesName := vars["series"]
+
+	_, database := getSettingsAndDatabase(response, request)
+	defer database.Close()
+	seriesRepository := Models.SeriesRepository{Db: database}
+	episodeRepository := Models.EpisodeRepository{Db: database}
+	series, err := seriesRepository.GetByName(seriesName, true)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			NotFoundHandler(response, request)
+		} else {
+			InternalServerErrorHandler(response, request, err)
+		}
+		return
+	}
+
+	episodes, err := episodeRepository.GetAllNewEpisodes(*series)
+	if err != nil {
+		InternalServerErrorHandler(response, request, err)
+	}
+	json.NewEncoder(response).Encode(episodes)
+	logAccess(database, request)
+}
+
+/*
+{
+	"ID": 45,
+	"Title": "Parks and Recreation",
+	"ProviderURL": "https://www.themoviedb.org/tv/8592-parks-and-recreation",
+	"current_episode": {
+		"ID": 3821,
+		"Episode": 3,
+		"Season": 6,
+		"Title": "The Pawnee-Eagleton Tip off Classic",
+		"Description": "Ben, Leslie and Chris meet with Eagleton city councilor Ingrid de Forest to discuss financial matters; Ann brings April to vet school orientation; Ron tries to get off the grid.",
+		"ReleaseDate": "2013-10-03T00:00:00Z"
+	}
+}
+ */
+func MovePointer(response http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	seriesName := vars["series"]
+	request.ParseForm()
+	episodeIdSlice, passed := request.Form["episodeId"]
+	if !passed {
+		BadRequestHandler(response, request)
+		return
+	}
+	targetEpisodeId := episodeIdSlice[0]
+	_, database := getSettingsAndDatabase(response, request)
+	defer database.Close()
+	seriesRepository := Models.SeriesRepository{Db: database}
+	episodeRepository := Models.EpisodeRepository{Db: database}
+
+	series, err := seriesRepository.GetByName(seriesName, true)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			NotFoundHandler(response, request)
+		} else {
+			InternalServerErrorHandler(response, request, err)
+		}
+		return
+	}
+
+	id, err := strconv.ParseInt(targetEpisodeId, 10, 64)
+	if err != nil {
+		InternalServerErrorHandler(response, request, err)
+	}
+
+	episode, err := episodeRepository.GetById(id, false)
+	if err != nil {
+		NotFoundErrorHandler(response, request, errors.New("No episode with that id found"))
+		return
+	}
+	series.WatchPointer = episode
+	err = seriesRepository.UpdateWatchPointer(series)
+	if err != nil {
+		InternalServerErrorHandler(response, request, err)
+		return
+	}
+
+	json.NewEncoder(response).Encode(series)
 	logAccess(database, request)
 }

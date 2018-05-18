@@ -92,7 +92,7 @@ func InternalServerErrorHandler(responseWriter http.ResponseWriter, request *htt
 	handleError(
 		responseWriter,
 		request,
-		errors.New(http.StatusText(http.StatusInternalServerError)),
+		errors.New(http.StatusText(http.StatusInternalServerError)+" "+err.Error()),
 		http.StatusInternalServerError,
 		Models.LogTypeError,
 	)

@@ -1,40 +1,52 @@
 package Models
 
-import "database/sql"
+import (
+	"database/sql"
+	"github.com/murlokswarm/errors"
+	"strconv"
+)
 
 const (
 	SeriesTableName        = "Series"
 	SeriesBasicSelectQuery = "SELECT " +
 		SeriesTableName + ".`id`, " +
-		SeriesTableName + ".`ProviderURL`, " +
 		SeriesTableName + ".`Title`, " +
+		SeriesTableName + ".`ProviderURL`, " +
 		SeriesTableName + ".`Image_id`, " +
-		ImageTableName + " .`Path` " +
-		"FROM " + SeriesTableName + " LEFT JOIN " + ImageTableName +
-		" ON " + SeriesTableName + ".`Image_id` = " + ImageTableName + ".`id` "
+		SeriesTableName + ".`Episode_id` " +
+		"FROM " + SeriesTableName
 )
 
 type Series struct {
-	ID             int
-	ImageID        int
-	ImagePath      string
-	ImageOriginUrl string `json:"-"`
-	ProviderURL    string
-	Title          string
-}
-
-func (repository *SeriesRepository) Scan(row *sql.Rows) Series {
-	series := Series{}
-	row.Scan(&series.ID, &series.ProviderURL, &series.Title, &series.ImageID, &series.ImagePath)
-	return series
+	ID           int64
+	Title        string
+	ProviderURL  string
+	WatchPointer *Episode `json:"current_episode"`
+	Image        *Image   `json:"-"`
 }
 
 type SeriesRepository struct {
 	Db *sql.DB
 }
 
-func (repository *SeriesRepository) GetAll() ([]Series, error) {
+func (repository *SeriesRepository) GetByName(title string, resolveRelations bool) (*Series, error) {
+	return repository.getByIdentifier("Title", title, resolveRelations)
+}
+
+func (repository *SeriesRepository) GetByProviderURL(providerURL string, resolveRelations bool) (*Series, error) {
+	return repository.getByIdentifier("ProviderURL", providerURL, resolveRelations)
+}
+
+func (repository *SeriesRepository) GetAll(resolveRelations bool) ([]Series, error) {
 	var series []Series
+	var imageRepository ImageRepository
+	var episodeRepository EpisodeRepository
+	var imageId int64
+	var episodeId int64
+	if resolveRelations {
+		imageRepository.Db = repository.Db
+		episodeRepository.Db = repository.Db
+	}
 	query := SeriesBasicSelectQuery
 	row, err := repository.Db.Query(query)
 	if err != nil {
@@ -42,56 +54,114 @@ func (repository *SeriesRepository) GetAll() ([]Series, error) {
 	}
 	defer row.Close()
 	for row.Next() {
-		series = append(series, repository.Scan(row))
+		r := Series{}
+		row.Scan(&r.ID,&r.Title,&r.ProviderURL, &imageId, &episodeId)
+		if resolveRelations {
+			if imageId > 0 {
+				imageStruct, err := imageRepository.GetById(imageId)
+				if err != nil {
+					return nil, err
+				}
+				imageStruct.ImageType = ImageProvider
+				r.Image = imageStruct
+			}
+			if episodeId > 0 {
+				episode, err := episodeRepository.GetById(episodeId, false)
+				if err != nil {
+					return nil, err
+				}
+				r.WatchPointer = episode
+			}
+		}
+		series = append(series, r)
 	}
 	return series, err
 }
 
-func (repository *SeriesRepository) GetByName(title string) (Series, error) {
-	var series Series
-	query := SeriesBasicSelectQuery + " WHERE " + SeriesTableName + ".`Title` = ?"
-	err := repository.Db.QueryRow(query, title).Scan(&series.ID, &series.ProviderURL, &series.Title, &series.ImageID, &series.ImagePath)
-	return series, err
-}
-
-func (repository *SeriesRepository) GetByProviderURL(providerURL string) (Series, error) {
-	var series Series
-	query := SeriesBasicSelectQuery + " WHERE " + SeriesTableName + ".`ProviderURL` = ?"
-	err := repository.Db.QueryRow(query, providerURL).Scan(&series.ID, &series.ProviderURL, &series.Title, &series.ImageID, &series.ImagePath)
-	return series, err
-}
-
-func (repository *SeriesRepository) Persist(series Series) error {
-	//@TODO refactor
-	imageRepository := ImageRepository{repository.Db}
-	image, err := imageRepository.GetByPath(series.ImagePath)
+func (repository *SeriesRepository) getByIdentifier(identifier string, identifierValue string, resolveRelations bool) (*Series, error) {
+	series := Series{}
+	query := SeriesBasicSelectQuery + " WHERE " + SeriesTableName + ".`" + identifier + "` = ?"
+	var (
+		watchpointerId sql.NullInt64
+		imageId        sql.NullInt64
+	)
+	err := repository.Db.QueryRow(query, identifierValue).Scan(&series.ID, &series.Title, &series.ProviderURL, &imageId, &watchpointerId)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			err = imageRepository.Persist(
-				Image{
-					OriginURL:    series.ImageOriginUrl,
-					RelativePath: series.ImagePath,
-				},
-			)
+		return nil, err
+	}
+	if resolveRelations {
+		if imageId.Valid {
+			imageRepository := ImageRepository{repository.Db}
+			imageStruct, err := imageRepository.GetById(imageId.Int64)
 			if err != nil {
-				return err
+				return nil, err
 			}
-			image, err = imageRepository.GetByPath(series.ImagePath)
+			imageStruct.ImageType = ImageProvider
+			series.Image = imageStruct
+		}
+		if watchpointerId.Valid {
+			episodeRepository := EpisodeRepository{repository.Db}
+			episode, err := episodeRepository.GetById(watchpointerId.Int64, false)
 			if err != nil {
-				return err
+				return nil, err
 			}
-		} else {
-			return err
+			series.WatchPointer = episode
 		}
 	}
+	return &series, nil
+}
 
-	query := "INSERT INTO " + SeriesTableName + " (ProviderURL, Title, Image_id) VALUES (?, ?, ?)"
-	_, err = repository.Db.Exec(
-		query,
-		series.ProviderURL,
-		series.Title,
-		image.ID,
+func (repository *SeriesRepository) GetById(id int64, resolveRelations bool) (*Series, error) {
+	series := Series{}
+	query := SeriesBasicSelectQuery + " WHERE " + SeriesTableName + ".`id` = ?"
+	var (
+		watchpointerId int64
+		imageId        int64
 	)
+	err := repository.Db.QueryRow(query, id).Scan(&series.ID, &series.Title, &series.ProviderURL, &imageId, &watchpointerId)
+	if err != nil {
+		return nil, err
+	}
+	if resolveRelations {
+		if imageId > 0 {
+			imageRepository := ImageRepository{repository.Db}
+			imageStruct, err := imageRepository.GetById(imageId)
+			if err != nil {
+				return nil, err
+			}
+			imageStruct.ImageType = ImageProvider
+			series.Image = imageStruct
+		}
+		if watchpointerId > 0 {
+			episodeRepository := EpisodeRepository{repository.Db}
+			episode, err := episodeRepository.GetById(watchpointerId, false)
+			if err != nil {
+				return nil, err
+			}
+			series.WatchPointer = episode
+		}
+	}
+	return &series, nil
+}
+
+func (repository *SeriesRepository) Persist(series Series) (int64, error) {
+	query := "INSERT INTO " + SeriesTableName + " (ProviderURL, Title, Image_id) VALUES (?, ?, ?)"
+	result, err := repository.Db.Exec(query, series.ProviderURL, series.Title, series.Image.ID)
+	if err != nil {
+		return 0, err
+	}
+	id, _ := result.LastInsertId()
+	return id, nil
+}
+
+func (repository *SeriesRepository) UpdateWatchPointer(series *Series) error {
+	if !(series.ID > 0 && series.WatchPointer.ID > 0) {
+		return errors.New("WatchPointer or Series are not persisted")
+	}
+	query := "UPDATE " + SeriesTableName + " SET Episode_id = " +
+		strconv.Itoa(int(series.WatchPointer.ID)) +
+		" WHERE id = " + strconv.Itoa(int(series.ID))
+	_, err := repository.Db.Exec(query)
 	if err != nil {
 		return err
 	}

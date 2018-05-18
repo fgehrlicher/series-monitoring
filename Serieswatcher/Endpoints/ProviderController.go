@@ -34,7 +34,7 @@ func GetAllProviders(response http.ResponseWriter, request *http.Request) {
 	_, database := getSettingsAndDatabase(response, request)
 	defer database.Close()
 	providerRepository := Models.ProviderRepository{Db: database}
-	providers, err := providerRepository.GetAll()
+	providers, err := providerRepository.GetAll(false)
 	if err != nil {
 		InternalServerErrorHandler(response, request, err)
 		return
@@ -54,14 +54,10 @@ func GetAllProviders(response http.ResponseWriter, request *http.Request) {
 func GetProvider(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	providerName := vars["provider"]
-	if providerName == "" {
-		NotFoundHandler(response, request)
-		return
-	}
 	_, database := getSettingsAndDatabase(response, request)
 	defer database.Close()
 	providerRepository := Models.ProviderRepository{Db: database}
-	provider, err := providerRepository.GetByName(providerName)
+	provider, err := providerRepository.GetByName(providerName, false)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			NotFoundHandler(response, request)
@@ -75,19 +71,15 @@ func GetProvider(response http.ResponseWriter, request *http.Request) {
 }
 
 /*
-Png Image
+png/jpg Image
  */
 func GetProviderImage(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	providerName := vars["provider"]
-	if providerName == "" {
-		NotFoundHandler(response, request)
-		return
-	}
-	settings, database := getSettingsAndDatabase(response, request)
+	_, database := getSettingsAndDatabase(response, request)
 	defer database.Close()
 	providerRepository := Models.ProviderRepository{Db: database}
-	provider, err := providerRepository.GetByName(providerName)
+	provider, err := providerRepository.GetByName(providerName, true)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			NotFoundHandler(response, request)
@@ -96,14 +88,15 @@ func GetProviderImage(response http.ResponseWriter, request *http.Request) {
 		}
 		return
 	}
-	image := Models.Image{RelativePath: provider.ImagePath, Settings: settings}
-	err = image.LoadImageFromFile(Models.ImageProvider)
+	if !(provider.Image.ID > 0) {
+		NotFoundHandler(response, request)
+		return
+	}
+	err = provider.Image.LoadFromFile()
 	if err != nil {
 		NotFoundHandler(response, request)
 		return
 	}
-	//@TODO other content types
-	response.Header().Set("Content-type", "image/png")
-	response.Write(image.Data)
+	response.Write(provider.Image.Data)
 	logAccess(database, request)
 }

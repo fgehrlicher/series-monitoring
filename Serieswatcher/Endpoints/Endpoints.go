@@ -1,7 +1,6 @@
 package Endpoints
 
 import (
-	"github.com/gorilla/mux"
 	"net/http"
 	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Config"
 	"database/sql"
@@ -16,6 +15,13 @@ type Message struct {
 	Message string `json:"message"`
 }
 
+func NewSuccessMessage() Message {
+	return Message{Message: "Success"}
+}
+func NewFailureMessage() Message {
+	return Message{Message: "failure"}
+}
+
 /*
 Returns:
 
@@ -25,41 +31,6 @@ Returns:
  */
 func RootEndpoint(response http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(response).Encode(Message{"Series watcher v3"})
-}
-
-func AttachEndpoints(router *mux.Router) {
-	router.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
-	router.MethodNotAllowedHandler = http.HandlerFunc(MethodNotAllowedHandler)
-
-	router.HandleFunc("/", RootEndpoint).Methods("GET")
-
-	router.HandleFunc("/logs/", GetAllLogs).Methods("GET")
-	router.HandleFunc("/logs/message/", GetAllMessages).Methods("GET")
-	router.HandleFunc("/logs/warning/", GetAllWarnings).Methods("GET")
-	router.HandleFunc("/logs/error/", GetAllErrors).Methods("GET")
-
-	router.HandleFunc("/provider/", GetAllProviders).Methods("GET")
-	router.HandleFunc("/provider/{provider}", GetProvider).Methods("GET")
-	router.HandleFunc("/provider/{provider}/", GetProviderImage).Methods("GET")
-
-	router.HandleFunc("/series/", GetAllSeries).Methods("GET")
-	router.HandleFunc("/series/{series}/", CreateSeries).Methods("POST")
-	router.HandleFunc("/series/{series}/", GetSeries).Methods("GET")
-	router.HandleFunc("/series/{series}/image", GetSeriesImage).Methods("GET")
-	/*router.HandleFunc("/series/{series}/", updateSeries).Methods("PUT")
-	router.HandleFunc("/series/{series}/", deleteSeries).Methods("DELETE")
-
-	router.HandleFunc("/series/{series}/pointer", deleteSeries).Methods("GET")
-	router.HandleFunc("/series/{series}/pointer", movePointer).Methods("POST")
-	router.HandleFunc("/series/{series}/unwatched-episode/", getUnwatchedEpisodes).Methods("GET")
-	router.HandleFunc("/series/{series}/episode/{season}/{episode}/", getEpisode).Methods("GET")
-	router.HandleFunc("/series/{series}/episode/{season}/{episode}/image", getEpisodeImage).Methods("GET")
-
-	router.HandleFunc("/functions/update-series/{series-name}", updateSeries).Methods("POST")
-	router.HandleFunc("/functions/update-series/*", updateAllSeries).Methods("POST")
-	router.HandleFunc("/functions/process-queue/", processQueue).Methods("POST")
-	*/
-
 }
 
 func logAccess(database *sql.DB, request *http.Request) {

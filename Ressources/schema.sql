@@ -34,6 +34,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `series`.`Series` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `Image_id` INT NOT NULL,
+  `Episode_id` INT NOT NULL,
   `Title` VARCHAR(255) NULL,
   `ProviderUrl` VARCHAR(255) NULL,
   PRIMARY KEY (`id`),
