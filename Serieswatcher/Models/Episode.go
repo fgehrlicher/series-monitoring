@@ -297,6 +297,7 @@ func (repository *EpisodeRepository) GetAllNewEpisodes(series Series) ([]Episode
 		EpisodeBasicSelectQuery + " WHERE " + EpisodeTableName + ".`Series_id` = " + strconv.Itoa(int(seriesId)) +
 			" AND " + EpisodeTableName + ".`Season` >= " + strconv.Itoa(int(series.WatchPointer.Season)) +
 			" AND " + EpisodeTableName + ".`Episode` > " + strconv.Itoa(int(series.WatchPointer.Episode)) +
+			" AND NOW() > " + EpisodeTableName + ".`ReleaseDate`"+
 			" ORDER BY Episode.`Season` ASC, Episode.`Episode` ASC;",
 	)
 	if err != nil {
