@@ -89,6 +89,11 @@ func GetSeriesImage(response http.ResponseWriter, request *http.Request) {
 		NotFoundHandler(response, request)
 		return
 	}
+
+	key := "black"
+	e := `"` + key + `"`
+	response.Header().Set("Etag", e)
+	response.Header().Set("Cache-Control", "max-age=2592000")
 	response.Write(series.Image.Data)
 	logAccess(database, request)
 }
@@ -342,12 +347,30 @@ func GetEpisodeImage(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = element.Image.LoadFromFile()
-	if err != nil {
-		NotFoundHandler(response, request)
-		return
+	if element.Image != nil {
+		err = element.Image.LoadFromFile()
+		if err != nil {
+			NotFoundHandler(response, request)
+			return
+		}
+		key := "black"
+		e := `"` + key + `"`
+		response.Header().Set("Etag", e)
+		response.Header().Set("Cache-Control", "max-age=2592000")
+		response.Write(element.Image.Data)
+	} else {
+		image := Models.Image{
+			RelativePath: "none",
+			ImageType:    Models.ImageEpisode,
+		}
+		err = image.LoadFromFile()
+		if err != nil {
+			InternalServerErrorHandler(response, request, err)
+			return
+		}
+		response.Write(image.Data)
 	}
-	response.Write(element.Image.Data)
+
 	logAccess(database, request)
 }
 
@@ -387,6 +410,38 @@ func GetNewEpisodes(response http.ResponseWriter, request *http.Request) {
 		InternalServerErrorHandler(response, request, err)
 	}
 	json.NewEncoder(response).Encode(episodes)
+	logAccess(database, request)
+}
+
+/**
+@TODO
+ */
+func GetAllNewEpisodes(response http.ResponseWriter, request *http.Request) {
+	_, database := getSettingsAndDatabase(response, request)
+	defer database.Close()
+	seriesRepository := Models.SeriesRepository{Db: database}
+	episodeRepository := Models.EpisodeRepository{Db: database}
+	seriesSlice, err := seriesRepository.GetAll(true)
+	if err != nil {
+		InternalServerErrorHandler(response, request, err)
+		return
+	}
+
+	resultSlice := make([]Models.Series, 0)
+
+	for _, series := range seriesSlice {
+		episodes, err := episodeRepository.GetAllNewEpisodes(series)
+		if err != nil {
+			InternalServerErrorHandler(response, request, err)
+			return
+		}
+		if len(episodes) > 0 {
+			series.UnwatchedEpisodes = episodes
+			resultSlice = append(resultSlice, series)
+		}
+	}
+
+	json.NewEncoder(response).Encode(resultSlice)
 	logAccess(database, request)
 }
 
