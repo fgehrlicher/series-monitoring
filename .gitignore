@@ -1,4 +1,5 @@
 Ressources/Db
 Backup/*
 !Backup/.gitkeep
+!Backup/current.sql
 Images/
