@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/murlokswarm/errors"
 	"strconv"
+	"encoding/json"
 )
 
 const (
@@ -18,11 +19,30 @@ const (
 )
 
 type Series struct {
-	ID           int64
-	Title        string
-	ProviderURL  string
-	WatchPointer *Episode `json:"current_episode"`
-	Image        *Image   `json:"-"`
+	ID                int64
+	Title             string
+	ProviderURL       string
+	UnwatchedEpisodes []Episode
+	WatchPointer      *Episode `json:"current_episode"`
+	Image             *Image
+}
+
+func (series Series) MarshalJSON() (b []byte, e error) {
+	return json.Marshal(struct {
+		ID                int64
+		Title             string
+		ProviderURL       string
+		UnwatchedEpisodes []Episode
+		WatchPointer      *Episode `json:"current_episode"`
+		ImageUrl          string   `json:"image_path"`
+	}{
+		ID:                series.ID,
+		Title:             series.Title,
+		ProviderURL:       series.ProviderURL,
+		UnwatchedEpisodes: series.UnwatchedEpisodes,
+		WatchPointer:      series.WatchPointer,
+		ImageUrl:          "series/" + series.Title + "/image/",
+	})
 }
 
 type SeriesRepository struct {
@@ -55,7 +75,7 @@ func (repository *SeriesRepository) GetAll(resolveRelations bool) ([]Series, err
 	defer row.Close()
 	for row.Next() {
 		r := Series{}
-		row.Scan(&r.ID,&r.Title,&r.ProviderURL, &imageId, &episodeId)
+		row.Scan(&r.ID, &r.Title, &r.ProviderURL, &imageId, &episodeId)
 		if resolveRelations {
 			if imageId > 0 {
 				imageStruct, err := imageRepository.GetById(imageId)
