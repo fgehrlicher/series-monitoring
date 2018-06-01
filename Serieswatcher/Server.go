@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"context"
+	"github.com/gorilla/handlers"
 )
 
 func Init() {
@@ -22,6 +23,8 @@ func Init() {
 	router := mux.NewRouter()
 	ip := settings.ServerSettings.Ip
 	port := settings.ServerSettings.Port
+
+	corsObj := handlers.AllowedOrigins([]string{"*"})
 
 	router.StrictSlash(true)
 
@@ -37,20 +40,21 @@ func Init() {
 
 	router.HandleFunc("/provider/", Endpoints.GetAllProviders).Methods("GET")
 	router.HandleFunc("/provider/{provider}/", Endpoints.GetProvider).Methods("GET")
-	router.HandleFunc("/provider/{provider}/image", Endpoints.GetProviderImage).Methods("GET")
+	router.HandleFunc("/provider/{provider}/image/", Endpoints.GetProviderImage).Methods("GET")
 
 	router.HandleFunc("/series/", Endpoints.GetAllSeries).Methods("GET")
+	router.HandleFunc("/series/unwatched/", Endpoints.GetAllNewEpisodes).Methods("GET")
 	router.HandleFunc("/series/{series}/", Endpoints.GetSeries).Methods("GET")
-	router.HandleFunc("/series/{series}/image", Endpoints.GetSeriesImage).Methods("GET")
-	router.HandleFunc("/series/{series}/episodes", Endpoints.GetAllEpisodes).Methods("GET")
-	router.HandleFunc("/series/{series}/episodes/unwatched", Endpoints.GetNewEpisodes).Methods("GET")
-	router.HandleFunc("/series/{series}/season/{season}", Endpoints.GetAllEpisodesBySeason).Methods("GET")
-	router.HandleFunc("/series/{series}/season/{season}/episode/{episode}", Endpoints.GetEpisode).Methods("GET")
-	router.HandleFunc("/series/{series}/season/{season}/episode/{episode}/image", Endpoints.GetEpisodeImage).Methods("GET")
+	router.HandleFunc("/series/{series}/image/", Endpoints.GetSeriesImage).Methods("GET")
+	router.HandleFunc("/series/{series}/episodes/", Endpoints.GetAllEpisodes).Methods("GET")
+	router.HandleFunc("/series/{series}/episodes/unwatched/", Endpoints.GetNewEpisodes).Methods("GET")
+	router.HandleFunc("/series/{series}/season/{season}/", Endpoints.GetAllEpisodesBySeason).Methods("GET")
+	router.HandleFunc("/series/{series}/season/{season}/episode/{episode}/", Endpoints.GetEpisode).Methods("GET")
+	router.HandleFunc("/series/{series}/season/{season}/episode/{episode}/image/", Endpoints.GetEpisodeImage).Methods("GET")
 
 	router.HandleFunc("/series/", Endpoints.CreateSeries).Methods("POST")
-	router.HandleFunc("/series/{series}/pointer", Endpoints.MovePointer).Methods("POST")
-	router.HandleFunc("/series/{series}/update", Endpoints.UpdateSeries).Methods("POST")
+	router.HandleFunc("/series/{series}/pointer/", Endpoints.MovePointer).Methods("POST")
+	router.HandleFunc("/series/{series}/update/", Endpoints.UpdateSeries).Methods("POST")
 
 	router.HandleFunc("/functions/update-all-series/", Endpoints.UpdateAllSeries).Methods("POST")
 
@@ -59,9 +63,9 @@ func Init() {
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
-		Handler:      router,
+		Handler:      handlers.CORS(corsObj)(router),
 	}
-
+	
 	color.Green("Server listening on: " + ip + ":" + port)
 
 	go func() {
