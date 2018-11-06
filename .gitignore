@@ -1,5 +1,10 @@
-Ressources/Db
-Backup/*
-!Backup/.gitkeep
-!Backup/current.sql
+Ressources/Backup/*
+!Ressources/Backup/.gitkeep
+!Ressources/Backup/current.sql
+
 Images/
+!Images/Episode/.gitkeep
+!Images/Series/.gitkeep
+!Images/Provider/*
+
+.idea
