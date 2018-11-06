@@ -213,7 +213,7 @@ CREATE TABLE IF NOT EXISTS `series`.`Log` (
   `StatusCode` INT NULL,
   `RequestUri` VARCHAR(255) NULL,
   `Caller` VARCHAR(255) NULL,
-  `Message` VARCHAR(1000) NULL,
+  `TEXT` VARCHAR(1000) NULL,
   `Time` DATETIME NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;

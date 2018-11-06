@@ -2,9 +2,10 @@ package Models
 
 import (
 	"database/sql"
-	"github.com/murlokswarm/errors"
+	"errors"
 	"strconv"
 	"encoding/json"
+	"net/url"
 )
 
 const (
@@ -23,25 +24,25 @@ type Series struct {
 	Title             string
 	ProviderURL       string
 	UnwatchedEpisodes []Episode
-	WatchPointer      *Episode `json:"current_episode"`
+	WatchPointer      *Episode
 	Image             *Image
 }
 
 func (series Series) MarshalJSON() (b []byte, e error) {
 	return json.Marshal(struct {
-		ID                int64
-		Title             string
-		ProviderURL       string
-		UnwatchedEpisodes []Episode
-		WatchPointer      *Episode `json:"current_episode"`
-		ImageUrl          string   `json:"image_path"`
+		ID                int64     `json:"id"`
+		Title             string    `json:"title"`
+		ImageUrl          string    `json:"image_path"`
+		ProviderURL       string    `json:"provider_url"`
+		UnwatchedEpisodes []Episode `json:"unwatched_episodes"`
+		WatchPointer      *Episode  `json:"current_episode"`
 	}{
 		ID:                series.ID,
 		Title:             series.Title,
+		ImageUrl:          "series/" + url.PathEscape(series.Title) + "/image/",
 		ProviderURL:       series.ProviderURL,
 		UnwatchedEpisodes: series.UnwatchedEpisodes,
 		WatchPointer:      series.WatchPointer,
-		ImageUrl:          "series/" + series.Title + "/image/",
 	})
 }
 
@@ -86,7 +87,7 @@ func (repository *SeriesRepository) GetAll(resolveRelations bool) ([]Series, err
 				r.Image = imageStruct
 			}
 			if episodeId > 0 {
-				episode, err := episodeRepository.GetById(episodeId, false)
+				episode, err := episodeRepository.GetById(episodeId, resolveRelations)
 				if err != nil {
 					return nil, err
 				}
@@ -121,7 +122,7 @@ func (repository *SeriesRepository) getByIdentifier(identifier string, identifie
 		}
 		if watchpointerId.Valid {
 			episodeRepository := EpisodeRepository{repository.Db}
-			episode, err := episodeRepository.GetById(watchpointerId.Int64, false)
+			episode, err := episodeRepository.GetById(watchpointerId.Int64, resolveRelations)
 			if err != nil {
 				return nil, err
 			}
@@ -154,7 +155,7 @@ func (repository *SeriesRepository) GetById(id int64, resolveRelations bool) (*S
 		}
 		if watchpointerId > 0 {
 			episodeRepository := EpisodeRepository{repository.Db}
-			episode, err := episodeRepository.GetById(watchpointerId, false)
+			episode, err := episodeRepository.GetById(watchpointerId, resolveRelations)
 			if err != nil {
 				return nil, err
 			}

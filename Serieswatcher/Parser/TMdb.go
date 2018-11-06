@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
 	"strconv"
-	"github.com/murlokswarm/errors"
+	"errors"
 	"time"
 )
 
@@ -108,10 +108,9 @@ func (handler *TMDbHandler) GetEpisode(season int, episode int) (*Models.Episode
 	episodeElement.Title = title
 	descriptionNode := episodeSelection.Find("div.info div div.overview p")
 	description := descriptionNode.Text()
-	if description == TMDbNoDescription {
-		return nil, NewError("No Description Jet"), nil
+	if description != TMDbNoDescription {
+		episodeElement.Description = description
 	}
-	episodeElement.Description = description
 
 	dateNode := episodeSelection.Find("div.info div.title div.date")
 	releaseDate := dateNode.Text()
@@ -127,7 +126,7 @@ func (handler *TMDbHandler) GetEpisode(season int, episode int) (*Models.Episode
 		return nil, nil, err
 	}
 	if handler.isErrorPage(imageDetailPage) {
-		return nil, nil, NewError("Image Not Found")
+		return episodeElement, nil, nil
 	}
 
 	var (
@@ -139,14 +138,14 @@ func (handler *TMDbHandler) GetEpisode(season int, episode int) (*Models.Episode
 		imageUrl, exists = imageNode.Attr("data-src")
 		if !exists {
 			if handler.hasImages(episodeSelection) {
-				return nil, nil, NewError("Image Not Found, Url: " + episodeUrl)
+				return episodeElement, nil, nil
 			}
 		}
 	} else {
 		imageNode := imageDetailPage.Find("div.results ul li div.image_content a.image")
 		imageUrl, exists = imageNode.Attr("href")
 		if !exists {
-			return nil, nil, NewError("Image Not Found, Url: " + imageDetailUrl)
+			return episodeElement, nil, nil
 		}
 	}
 

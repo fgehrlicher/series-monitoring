@@ -1,4 +1,5 @@
-version: '2'
+version: '3.7'
+
 services:
 
   mysql:
@@ -12,7 +13,7 @@ services:
         MYSQL_ROOT_PASSWORD: root
         MYSQL_DATABASE: series
 
-  go:
+  serieswatcher:
     build:
       context: .
       dockerfile: ./Dockerfile

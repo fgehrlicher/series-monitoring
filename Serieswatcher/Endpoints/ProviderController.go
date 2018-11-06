@@ -8,28 +8,6 @@ import (
 	"database/sql"
 )
 
-/*
-[
-  {
-    "ImageID": 5,
-    "ImagePath": "Provider\/netflix.png",
-    "Name": "Netflix",
-    "ID": 1
-  },
-  {
-    "ImageID": 4,
-    "ImagePath": "Provider\/burningseries.png",
-    "Name": "Burning Series",
-    "ID": 2
-  },
-  {
-    "ImageID": 6,
-    "ImagePath": "Provider\/primevideo.png",
-    "Name": "Amazon Prime",
-    "ID": 3
-  }
-]
- */
 func GetAllProviders(response http.ResponseWriter, request *http.Request) {
 	_, database := getSettingsAndDatabase(response, request)
 	defer database.Close()
@@ -43,14 +21,6 @@ func GetAllProviders(response http.ResponseWriter, request *http.Request) {
 	logAccess(database, request)
 }
 
-/*
-{
-  "ImageID": 5,
-  "ImagePath": "Provider\/netflix.png",
-  "Name": "Netflix",
-  "ID": 1
-}
- */
 func GetProvider(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	providerName := vars["provider"]
@@ -70,9 +40,6 @@ func GetProvider(response http.ResponseWriter, request *http.Request) {
 	logAccess(database, request)
 }
 
-/*
-png/jpg Image
- */
 func GetProviderImage(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	providerName := vars["provider"]

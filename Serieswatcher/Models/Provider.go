@@ -2,6 +2,8 @@ package Models
 
 import (
 	"database/sql"
+	"encoding/json"
+	"net/url"
 )
 
 const (
@@ -9,9 +11,21 @@ const (
 )
 
 type Provider struct {
-	ID   int
-	Name string
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
 	Image *Image `json:"-"`
+}
+
+func (Provider Provider) MarshalJSON() (b []byte, e error) {
+	return json.Marshal(struct {
+		ID       int
+		Name     string
+		ImageUrl string
+	}{
+		ID:       Provider.ID,
+		Name:     Provider.Name,
+		ImageUrl: "/provider/" + url.PathEscape(Provider.Name) + "/image/",
+	})
 }
 
 type ProviderRepository struct {

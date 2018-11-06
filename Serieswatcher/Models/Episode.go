@@ -3,8 +3,10 @@ package Models
 import (
 	"time"
 	"database/sql"
-	"github.com/murlokswarm/errors"
+	"errors"
 	"strconv"
+	"encoding/json"
+	"net/url"
 )
 
 const (
@@ -22,14 +24,34 @@ const (
 )
 
 type Episode struct {
-	ID          int64
-	Series      *Series `json:"-"`
-	Image       *Image  `json:"-"`
-	Episode     int
-	Season      int
-	Title       string
-	Description string
-	ReleaseDate time.Time
+	ID          int64     `json:"id"`
+	Series      *Series   `json:"-"`
+	Image       *Image    `json:"-"`
+	Episode     int       `json:"episode"`
+	Season      int       `json:"season"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	ReleaseDate time.Time `json:"release_date"`
+}
+
+func (Episode Episode) MarshalJSON() (b []byte, e error) {
+	return json.Marshal(struct {
+		ID          int64
+		Episode     int
+		Season      int
+		Title       string
+		Description string
+		ReleaseDate time.Time
+		ImageUrl    string
+	}{
+		ID:          Episode.ID,
+		Episode:     Episode.Episode,
+		Season:      Episode.Season,
+		Title:       Episode.Title,
+		Description: Episode.Description,
+		ReleaseDate: Episode.ReleaseDate,
+		ImageUrl:    "/series/" + url.PathEscape(Episode.Series.Title) + "/season/" + strconv.Itoa(int(Episode.Season)) + "/episode/" + strconv.Itoa(int(Episode.Episode)) + "/image/",
+	})
 }
 
 type EpisodeRepository struct {
@@ -72,7 +94,7 @@ func (repository *EpisodeRepository) GetAllBySeries(series Series, resolveRelati
 
 	seriesId := series.ID
 	if seriesId == 0 {
-		return nil, errors.New("Series is not persisted")
+		return nil, errors.New("series is not persisted")
 	}
 
 	row, err := repository.Db.Query(EpisodeBasicSelectQuery+" WHERE "+EpisodeTableName+".`Series_id` = ?", seriesId)
@@ -99,13 +121,7 @@ func (repository *EpisodeRepository) GetAllBySeries(series Series, resolveRelati
 
 		if resolveRelations {
 			if SeriesID.Valid {
-				seriesRepository := SeriesRepository{repository.Db}
-				series, err := seriesRepository.GetById(SeriesID.Int64, false)
-				if err != nil {
-					return nil, err
-				}
-				episode.Series = series
-
+				episode.Series = &series
 			}
 			if ImageId.Valid {
 				imageRepository := ImageRepository{repository.Db}
@@ -128,7 +144,7 @@ func (repository *EpisodeRepository) GetAllBySeriesAndSeason(series Series, seas
 
 	seriesId := series.ID
 	if seriesId == 0 {
-		return nil, errors.New("Series is not persisted")
+		return nil, errors.New("series is not persisted")
 	}
 
 	row, err := repository.Db.Query(
@@ -156,13 +172,7 @@ func (repository *EpisodeRepository) GetAllBySeriesAndSeason(series Series, seas
 
 		if resolveRelations {
 			if SeriesID.Valid {
-				seriesRepository := SeriesRepository{repository.Db}
-				series, err := seriesRepository.GetById(SeriesID.Int64, false)
-				if err != nil {
-					return nil, err
-				}
-				episode.Series = series
-
+				episode.Series = &series
 			}
 			if ImageId.Valid {
 				imageRepository := ImageRepository{repository.Db}
@@ -275,6 +285,7 @@ func (repository *EpisodeRepository) GetLatestBySeries(series Series) (*Episode,
 		&episode.Title,
 		&episode.Description,
 		&episode.ReleaseDate)
+	episode.Series = &series
 	if err != nil {
 		return nil, err
 	}
@@ -295,9 +306,10 @@ func (repository *EpisodeRepository) GetAllNewEpisodes(series Series) ([]Episode
 
 	row, err := repository.Db.Query(
 		EpisodeBasicSelectQuery + " WHERE " + EpisodeTableName + ".`Series_id` = " + strconv.Itoa(int(seriesId)) +
-			" AND " + EpisodeTableName + ".`Season` >= " + strconv.Itoa(int(series.WatchPointer.Season)) +
+			" AND (" + EpisodeTableName + ".`Season` > " + strconv.Itoa(int(series.WatchPointer.Season)) +
+			" OR (" + EpisodeTableName + ".`Season` = " + strconv.Itoa(int(series.WatchPointer.Season)) +
 			" AND " + EpisodeTableName + ".`Episode` > " + strconv.Itoa(int(series.WatchPointer.Episode)) +
-			" AND NOW() > " + EpisodeTableName + ".`ReleaseDate`"+
+			")) AND NOW() > " + EpisodeTableName + ".`ReleaseDate`" +
 			" ORDER BY Episode.`Season` ASC, Episode.`Episode` ASC;",
 	)
 	if err != nil {
@@ -320,6 +332,51 @@ func (repository *EpisodeRepository) GetAllNewEpisodes(series Series) ([]Episode
 			&episode.Description,
 			&episode.ReleaseDate,
 		)
+		episode.Series = &series
+
+		episodes = append(episodes, episode)
+	}
+	return episodes, nil
+}
+
+func (repository *EpisodeRepository) GetAllUpcomingEpisodes(series Series) ([]Episode, error) {
+	var episodes []Episode
+
+	seriesId := series.ID
+	if seriesId == 0 {
+		return nil, errors.New("series is not persisted")
+	}
+
+	if series.WatchPointer == nil {
+		return nil, errors.New("no WatchPointer set")
+	}
+
+	row, err := repository.Db.Query(
+		EpisodeBasicSelectQuery + " WHERE " + EpisodeTableName + ".`Series_id` = " + strconv.Itoa(int(seriesId)) +
+			" AND NOW() < " + EpisodeTableName + ".`ReleaseDate`" +
+			" ORDER BY Episode.`Season` ASC, Episode.`Episode` ASC;",
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	defer row.Close()
+	for row.Next() {
+		SeriesID := sql.NullInt64{}
+		ImageId := sql.NullInt64{}
+		episode := Episode{}
+
+		row.Scan(
+			&episode.ID,
+			&SeriesID,
+			&ImageId,
+			&episode.Episode,
+			&episode.Season,
+			&episode.Title,
+			&episode.Description,
+			&episode.ReleaseDate,
+		)
+		episode.Series = &series
 
 		episodes = append(episodes, episode)
 	}

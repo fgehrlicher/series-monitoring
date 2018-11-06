@@ -7,20 +7,6 @@ import (
 	"strconv"
 )
 
-/*
-[
-  {
-    "Message": "Authorized Call",
-    "Time": "2018-03-12T07:24:21Z",
-    "Type": 1,
-    "Caller": "127.0.0.1:53419",
-    "RequestUri": "\/logs\/",
-    "StatusCode": 200,
-    "ID": 0
-  },
-  ....
-]
- */
 func GetAllLogs(response http.ResponseWriter, request *http.Request) {
 	var logs []Models.Log
 	var err error
@@ -46,57 +32,15 @@ func GetAllLogs(response http.ResponseWriter, request *http.Request) {
 	logAccess(database, request)
 }
 
-/*
-[
-  {
-    "Message": "Authorized Call",
-    "Time": "2018-03-12T07:24:21Z",
-    "Type": 1,
-    "Caller": "127.0.0.1:53419",
-    "RequestUri": "\/logs\/",
-    "StatusCode": 200,
-    "ID": 0
-  },
-  ....
-]
- */
 func GetAllMessages(response http.ResponseWriter, request *http.Request) {
 	GetAllByType(response, request, Models.LogTypeMessage)
 }
 
-/*
-[
-  {
-    "Message": "Not Found",
-    "Time": "2018-03-09T13:51:01Z",
-    "Type": 2,
-    "Caller": "127.0.0.1:58052",
-    "RequestUri": "\/logs\/adasd",
-    "StatusCode": 404,
-    "ID": 0
-  },
-  ....
-]
- */
 func GetAllWarnings(response http.ResponseWriter, request *http.Request) {
 	GetAllByType(response, request, Models.LogTypeWarning)
 
 }
 
-/*
-[
-  {
-    "Message": "Server Error",
-    "Time": "2018-03-09T13:51:01Z",
-    "Type": 3,
-    "Caller": "127.0.0.1:58052",
-    "RequestUri": "\/logs\/",
-    "StatusCode": 404,
-    "ID": 0
-  },
-  ....
-]
- */
 func GetAllErrors(response http.ResponseWriter, request *http.Request) {
 	GetAllByType(response, request, Models.LogTypeError)
 }

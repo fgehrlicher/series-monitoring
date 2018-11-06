@@ -3,6 +3,9 @@ package Models
 import (
 	"database/sql"
 	"time"
+	"fmt"
+	"os"
+	"github.com/fatih/color"
 )
 
 const (
@@ -14,13 +17,13 @@ const (
 )
 
 type Log struct {
-	Message    string
-	Time       time.Time
-	Type       int
-	Caller     string
-	RequestUri string
-	StatusCode int
-	ID         int
+	ID         int       `json:"id"`
+	Message    string    `json:"message"`
+	Time       time.Time `json:"time"`
+	Type       int       `json:"type"`
+	Caller     string    `json:"caller"`
+	RequestUri string    `json:"request_uri"`
+	StatusCode int       `json:"status_code"`
 }
 
 type LogRepository struct {
@@ -34,6 +37,50 @@ func (repository *LogRepository) Scan(row *sql.Rows) Log {
 }
 
 func (repository *LogRepository) Persist(log Log) error {
+
+	currentTime := time.Now()
+	printMessage := "[" + currentTime.Format("2006-01-02 15:04:05") + "] "
+
+	switch log.Type {
+	case LogTypeMessage:
+		fmt.Fprintln(
+			os.Stdout,
+			color.GreenString(printMessage),
+			color.GreenString(log.Caller),
+			color.GreenString("[Info]"),
+			color.GreenString(log.Message),
+			color.GreenString(log.RequestUri),
+		)
+		break
+	case LogTypeWarning:
+		fmt.Fprintln(
+			os.Stdout,
+			color.YellowString(printMessage),
+			color.YellowString(log.Caller),
+			color.YellowString("[Warning]"),
+			color.YellowString(log.Message),
+			color.YellowString(log.RequestUri),
+		)
+		break
+	case LogTypeError:
+		fmt.Fprintln(
+			os.Stderr,
+			color.RedString(printMessage),
+			color.RedString(log.Caller),
+			color.RedString("[Error]"),
+			color.RedString(log.Message),
+			color.RedString(log.RequestUri),
+		)
+		break
+	default:
+		fmt.Fprintln(
+			os.Stdout,
+			printMessage,
+			"[Unknown]",
+			log.Message,
+		)
+	}
+
 	query := "INSERT INTO " + LogTableName + " (Message, Time, Type, Caller, RequestUri, StatusCode) VALUES (?, NOW(), ?, ?, ?, ?)"
 	_, err := repository.Db.Exec(
 		query,

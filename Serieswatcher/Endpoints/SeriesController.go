@@ -9,21 +9,9 @@ import (
 	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Parser"
 	"strings"
 	"strconv"
-	"github.com/murlokswarm/errors"
+	"errors"
 )
 
-/*
-[
-  {
-    "ID": 4,
-    "ImageID": 4,
-    "ImagePath": "Series\/Bojack-horseman.png",
-    "ProviderURL": "tv/2424323",
-    "Title": "Bojack Horeseman"
-  },
-  ....
-]
- */
 func GetAllSeries(response http.ResponseWriter, request *http.Request) {
 	_, database := getSettingsAndDatabase(response, request)
 	defer database.Close()
@@ -109,7 +97,7 @@ func GetSeriesImage(response http.ResponseWriter, request *http.Request) {
  */
 func CreateSeries(response http.ResponseWriter, request *http.Request) {
 	request.ParseForm()
-	seriesUrlSlice, passed := request.Form["seriesUrl"]
+	seriesUrlSlice, passed := request.Form["series_url"]
 	if !passed {
 		BadRequestHandler(response, request)
 		return
@@ -202,7 +190,7 @@ func GetAllEpisodes(response http.ResponseWriter, request *http.Request) {
 	defer database.Close()
 	seriesRepository := Models.SeriesRepository{Db: database}
 	episodeRepository := Models.EpisodeRepository{Db: database}
-	series, err := seriesRepository.GetByName(seriesName, false)
+	series, err := seriesRepository.GetByName(seriesName, true)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			NotFoundHandler(response, request)
@@ -212,7 +200,7 @@ func GetAllEpisodes(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	episodes, err := episodeRepository.GetAllBySeries(*series, false)
+	episodes, err := episodeRepository.GetAllBySeries(*series, true)
 	json.NewEncoder(response).Encode(episodes)
 	logAccess(database, request)
 }
@@ -242,7 +230,7 @@ func GetAllEpisodesBySeason(response http.ResponseWriter, request *http.Request)
 	defer database.Close()
 	seriesRepository := Models.SeriesRepository{Db: database}
 	episodeRepository := Models.EpisodeRepository{Db: database}
-	series, err := seriesRepository.GetByName(seriesName, false)
+	series, err := seriesRepository.GetByName(seriesName, true)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			NotFoundHandler(response, request)
@@ -252,7 +240,7 @@ func GetAllEpisodesBySeason(response http.ResponseWriter, request *http.Request)
 		return
 	}
 
-	episodes, err := episodeRepository.GetAllBySeriesAndSeason(*series, season, false)
+	episodes, err := episodeRepository.GetAllBySeriesAndSeason(*series, season, true)
 	json.NewEncoder(response).Encode(episodes)
 	logAccess(database, request)
 }
@@ -286,7 +274,7 @@ func GetEpisode(response http.ResponseWriter, request *http.Request) {
 	defer database.Close()
 	seriesRepository := Models.SeriesRepository{Db: database}
 	episodeRepository := Models.EpisodeRepository{Db: database}
-	series, err := seriesRepository.GetByName(seriesName, false)
+	series, err := seriesRepository.GetByName(seriesName, true)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			NotFoundHandler(response, request)
@@ -296,7 +284,7 @@ func GetEpisode(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	element, err := episodeRepository.GetOneBySeriesAndSeasonAndEpisode(*series, season, episode, false)
+	element, err := episodeRepository.GetOneBySeriesAndSeasonAndEpisode(*series, season, episode, true)
 	if err != nil {
 		InternalServerErrorHandler(response, request, err)
 	}
@@ -305,14 +293,7 @@ func GetEpisode(response http.ResponseWriter, request *http.Request) {
 }
 
 /*
-{
-	"ID": 391,
-	"Episode": 1,
-	"Season": 1,
-	"Title": "The Bone Orchard",
-	"Description": "When Shadow Moon is released from prison early after the death of his wife, he meets Mr. Wednesday and is recruited as his bodyguard. Shadow discovers that this may be more than he bargained for.",
-	"ReleaseDate": "2017-04-30T00:00:00Z"
-}
+png/jpg image
 */
 func GetEpisodeImage(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
@@ -331,7 +312,7 @@ func GetEpisodeImage(response http.ResponseWriter, request *http.Request) {
 	defer database.Close()
 	seriesRepository := Models.SeriesRepository{Db: database}
 	episodeRepository := Models.EpisodeRepository{Db: database}
-	series, err := seriesRepository.GetByName(seriesName, false)
+	series, err := seriesRepository.GetByName(seriesName, true)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			NotFoundHandler(response, request)
@@ -413,9 +394,58 @@ func GetNewEpisodes(response http.ResponseWriter, request *http.Request) {
 	logAccess(database, request)
 }
 
-/**
-@TODO
- */
+/*
+[
+	{
+		"ID": 391,
+		"Episode": 1,
+		"Season": 1,
+		"Title": "The Bone Orchard",
+		"Description": "When Shadow Moon is released from prison early after the death of his wife, he meets Mr. Wednesday and is recruited as his bodyguard. Shadow discovers that this may be more than he bargained for.",
+		"ReleaseDate": "2017-04-30T00:00:00Z"
+	},
+	...
+]
+*/
+func GetUpcomingEpisodes(response http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	seriesName := vars["series"]
+
+	_, database := getSettingsAndDatabase(response, request)
+	defer database.Close()
+	seriesRepository := Models.SeriesRepository{Db: database}
+	episodeRepository := Models.EpisodeRepository{Db: database}
+	series, err := seriesRepository.GetByName(seriesName, true)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			NotFoundHandler(response, request)
+		} else {
+			InternalServerErrorHandler(response, request, err)
+		}
+		return
+	}
+
+	episodes, err := episodeRepository.GetAllUpcomingEpisodes(*series)
+	if err != nil {
+		InternalServerErrorHandler(response, request, err)
+	}
+	json.NewEncoder(response).Encode(episodes)
+	logAccess(database, request)
+}
+
+/*
+[
+	{
+		"ID": 391,
+		"Episode": 1,
+		"Season": 1,
+		"Title": "The Bone Orchard",
+		"Description": "When Shadow Moon is released from prison early after the death of his wife, he meets Mr. Wednesday and is recruited as his bodyguard. Shadow discovers that this may be more than he bargained for.",
+		"ReleaseDate": "2017-04-30T00:00:00Z"
+	},
+	...
+]
+*/
 func GetAllNewEpisodes(response http.ResponseWriter, request *http.Request) {
 	_, database := getSettingsAndDatabase(response, request)
 	defer database.Close()
@@ -431,6 +461,48 @@ func GetAllNewEpisodes(response http.ResponseWriter, request *http.Request) {
 
 	for _, series := range seriesSlice {
 		episodes, err := episodeRepository.GetAllNewEpisodes(series)
+		if err != nil {
+			InternalServerErrorHandler(response, request, err)
+			return
+		}
+		if len(episodes) > 0 {
+			series.UnwatchedEpisodes = episodes
+			resultSlice = append(resultSlice, series)
+		}
+	}
+
+	json.NewEncoder(response).Encode(resultSlice)
+	logAccess(database, request)
+}
+
+/*
+[
+	{
+		"ID": 391,
+		"Episode": 1,
+		"Season": 1,
+		"Title": "The Bone Orchard",
+		"Description": "When Shadow Moon is released from prison early after the death of his wife, he meets Mr. Wednesday and is recruited as his bodyguard. Shadow discovers that this may be more than he bargained for.",
+		"ReleaseDate": "2017-04-30T00:00:00Z"
+	},
+	...
+]
+*/
+func GetAllUpcomingEpisodes(response http.ResponseWriter, request *http.Request) {
+	_, database := getSettingsAndDatabase(response, request)
+	defer database.Close()
+	seriesRepository := Models.SeriesRepository{Db: database}
+	episodeRepository := Models.EpisodeRepository{Db: database}
+	seriesSlice, err := seriesRepository.GetAll(true)
+	if err != nil {
+		InternalServerErrorHandler(response, request, err)
+		return
+	}
+
+	resultSlice := make([]Models.Series, 0)
+
+	for _, series := range seriesSlice {
+		episodes, err := episodeRepository.GetAllUpcomingEpisodes(series)
 		if err != nil {
 			InternalServerErrorHandler(response, request, err)
 			return
@@ -464,7 +536,7 @@ func MovePointer(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	seriesName := vars["series"]
 	request.ParseForm()
-	episodeIdSlice, passed := request.Form["episodeId"]
+	episodeIdSlice, passed := request.Form["episode_id"]
 	if !passed {
 		BadRequestHandler(response, request)
 		return
@@ -490,7 +562,7 @@ func MovePointer(response http.ResponseWriter, request *http.Request) {
 		InternalServerErrorHandler(response, request, err)
 	}
 
-	episode, err := episodeRepository.GetById(id, false)
+	episode, err := episodeRepository.GetById(id, true)
 	if err != nil {
 		NotFoundErrorHandler(response, request, errors.New("No episode with that id found"))
 		return

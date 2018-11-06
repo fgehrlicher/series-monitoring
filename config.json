@@ -9,6 +9,6 @@
   "server": {
     "ip": "0.0.0.0",
     "port": "5000",
-    "image-base-dir": "/Users/fabiangehrlicher/go/src/bitbucket.org/fabian_gehrlicher/series-watcher-v3/Images"
+    "image-base-dir": "/Users/gehrlicherf/go/src/bitbucket.org/fabian_gehrlicher/series-watcher-v3/Images"
   }
 }

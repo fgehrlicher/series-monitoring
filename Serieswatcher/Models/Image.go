@@ -1,7 +1,7 @@
 package Models
 
 import (
-	"github.com/murlokswarm/errors"
+	"errors"
 	"io/ioutil"
 	"os"
 	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Config"
@@ -25,17 +25,18 @@ const (
 type ImageRepository struct {
 	Db *sql.DB
 }
+
 type Image struct {
-	ID           int64
-	RelativePath string
-	OriginURL    string
-	Data         []byte
-	ImageType    int
+	ID           int64  `json:"id"`
+	RelativePath string `json:"relative_path"`
+	OriginURL    string `json:"origin_url"`
+	Data         []byte `json:"-"`
+	ImageType    int    `json:"image_type"`
 }
 
 func (imageStruct *Image) LoadFromFile() error {
 	if imageStruct.RelativePath == "" {
-		errors.New("No Image Path")
+		return errors.New("no Image Path")
 	}
 	configuration, _ := Config.GetConfiguration()
 	absolutePath := path.Join(configuration.ServerSettings.ImagePath, imageStruct.RelativePath)
@@ -128,6 +129,23 @@ func (repository *ImageRepository) Persist(image Image) (int64, error) {
 		return 0, err
 	}
 	return id, nil
+}
+
+func (repository *ImageRepository) GetAll() ([]Image, error) {
+	var images []Image
+
+	query := ImageBasicSelectQuery
+	row, err := repository.Db.Query(query)
+	if err != nil {
+		return images, err
+	}
+	defer row.Close()
+	for row.Next() {
+		r := Image{}
+		row.Scan(&r.ID, &r.OriginURL, &r.RelativePath)
+		images = append(images, r)
+	}
+	return images, nil
 }
 
 func (repository *ImageRepository) GetByPath(path string) (*Image, error) {

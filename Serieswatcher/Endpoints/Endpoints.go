@@ -22,13 +22,6 @@ func NewFailureMessage() Message {
 	return Message{Message: "failure"}
 }
 
-/*
-Returns:
-
-{
-	"message": "Series watcher v3"
-}
- */
 func RootEndpoint(response http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(response).Encode(Message{"Series watcher v3"})
 }
