@@ -25,3 +25,14 @@ pipeline:
     - latest
     username: drone
     password: drone
+
+  deploy:
+    image: appleboy/drone-ssh
+    username: root
+    host: fge.cloud
+    port: 22
+    secrets: [ ssh_key ]
+    script:
+      - cd /root/docker
+      - docker pull registry.fge.cloud/fabiangehrlicher/series-watcher
+      - registry.fge.cloud/fabiangehrlicher/series-watcher-database
