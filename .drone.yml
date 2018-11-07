@@ -31,7 +31,9 @@ pipeline:
     username: root
     host: fge.cloud
     port: 22
-    secrets: [ ssh_key ]
+    volumes:
+      - /auth/id_rsa:/root/ssh/drone_rsa
+    key_path: /root/ssh/drone_rsa
     script:
       - cd /root/docker
       - docker pull registry.fge.cloud/fabiangehrlicher/series-watcher
