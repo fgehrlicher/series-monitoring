@@ -1,6 +1,7 @@
 pipeline:
 
   serieswatcher_deploy:
+    group: build
     image: plugins/docker
     repo: registry.fge.cloud/fabiangehrlicher/series-watcher
     registry: https://registry.fge.cloud
@@ -14,6 +15,7 @@ pipeline:
     password: drone
 
   serieswatcher_database_deploy:
+    group: build
     image: plugins/docker
     repo: registry.fge.cloud/fabiangehrlicher/series-watcher-database
     registry: https://registry.fge.cloud
@@ -28,13 +30,11 @@ pipeline:
 
   deploy:
     image: appleboy/drone-ssh
-    username: root
     host: fge.cloud
+    username: root
     port: 22
-    volumes:
-      - /auth/id_rsa:/root/ssh/drone_rsa
-    key_path: /root/ssh/drone_rsa
+    secrets: [ ssh_password ]
     script:
-      - cd /root/docker
       - docker pull registry.fge.cloud/fabiangehrlicher/series-watcher
-      - registry.fge.cloud/fabiangehrlicher/series-watcher-database
+      - docker pull registry.fge.cloud/fabiangehrlicher/series-watcher-database
+      - cd /root/docker && ls -la
