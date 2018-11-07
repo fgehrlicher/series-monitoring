@@ -8,7 +8,7 @@
   },
   "server": {
     "ip": "0.0.0.0",
-    "port": "5000",
+    "port": "8080",
     "image-base-dir": "/Images"
   }
 }

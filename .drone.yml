@@ -1,40 +1,38 @@
 pipeline:
 
   serieswatcher_deploy:
+    when:
+      event: tag
+    auto_tag: true
     group: build
     image: plugins/docker
     repo: registry.fge.cloud/fabiangehrlicher/series-watcher
     registry: https://registry.fge.cloud
     dockerfile: Serieswatcher-go.Dockerfile
-    tags:
-    - 1.0.0
-    - 1.0
-    - 1
-    - latest
     username: drone
     password: drone
 
   serieswatcher_database_deploy:
+    when:
+      event: tag
+    auto_tag: true
     group: build
     image: plugins/docker
     repo: registry.fge.cloud/fabiangehrlicher/series-watcher-database
     registry: https://registry.fge.cloud
     dockerfile: Serieswatcher-mysql.Dockerfile
-    tags:
-    - 1.0.0
-    - 1.0
-    - 1
-    - latest
     username: drone
     password: drone
 
   deploy:
+    when:
+      event: tag
     image: appleboy/drone-ssh
     host: fge.cloud
     username: root
     port: 22
     secrets: [ ssh_password ]
     script:
-      - docker pull registry.fge.cloud/fabiangehrlicher/series-watcher
-      - docker pull registry.fge.cloud/fabiangehrlicher/series-watcher-database
+      - docker pull registry.fge.cloud/fabiangehrlicher/series-watcher:latest
+      - docker pull registry.fge.cloud/fabiangehrlicher/series-watcher-database:latest
       - cd /root/docker && ls -la

@@ -749,13 +749,14 @@ func Init() {
 	}
 
 	figure.NewFigure(" SERIES WATCHER ", "", true).Print()
-	color.Green("\nServer listening on: " + ip + ":" + port + "\n\n")
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil {
 			server.ListenAndServe()
 		}
 	}()
+
+	color.Green("\nServer listening on: " + ip + ":" + port + "\n\n")
 
 	osSignalChannel := make(chan os.Signal, 1)
 	signal.Notify(osSignalChannel, os.Interrupt)
