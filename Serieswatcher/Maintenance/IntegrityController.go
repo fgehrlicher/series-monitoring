@@ -1,11 +1,11 @@
 package Maintenance
 
 import (
-		"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
+		"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
 	"net/http"
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Parser"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Parser"
 	"os"
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Config"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Config"
 	"path"
 	"strings"
 )

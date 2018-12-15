@@ -7,4 +7,6 @@ Images/
 !Images/Series/.gitkeep
 !Images/Provider/*
 
+vendor
 .idea
+series-watcher-v3

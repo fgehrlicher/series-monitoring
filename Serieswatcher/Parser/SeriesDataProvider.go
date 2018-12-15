@@ -1,6 +1,6 @@
 package Parser
 
-import "bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
+import "gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
 
 const (
 	CoverImagesPath   = "Series/"

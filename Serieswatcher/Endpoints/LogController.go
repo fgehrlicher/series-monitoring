@@ -3,7 +3,7 @@ package Endpoints
 import (
 	"net/http"
 	"encoding/json"
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
 	"strconv"
 )
 

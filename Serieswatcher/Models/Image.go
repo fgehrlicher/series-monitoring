@@ -4,7 +4,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Config"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Config"
 	"path"
 	"path/filepath"
 	"io"

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"path"
 	"net/http"
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
 	"strconv"
 	"errors"
 	"time"

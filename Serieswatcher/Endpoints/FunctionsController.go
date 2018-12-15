@@ -3,13 +3,13 @@ package Endpoints
 import (
 	"net/http"
 	"github.com/gorilla/mux"
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
 	"database/sql"
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Parser"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Parser"
 	"strconv"
 	"github.com/fatih/color"
 	"encoding/json"
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Maintenance"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Maintenance"
 )
 
 func UpdateSeries(response http.ResponseWriter, request *http.Request) {
@@ -131,7 +131,7 @@ func updateSeries(series *Models.Series, database *sql.DB) (string, error) {
 		}
 	}
 
-	message = "Imported " + strconv.Itoa(len(episodes)) + " Episodes for Series: " + series.Title
+	message = "Imported " + strconv.Itoa(len(episodes)) + " Episode for Series: " + series.Title
 	logRepository.Persist(
 		Models.Log{
 			Type:       Models.LogTypeMessage,
@@ -196,7 +196,7 @@ func CheckIntegrity(response http.ResponseWriter, request *http.Request) {
 			Caller:     "-",
 			RequestUri: "-",
 			StatusCode: 200,
-			Message:    "Updated " + strconv.Itoa(updateCount) + " Episodes. \n Raw Message: \n" + message,
+			Message:    "Updated " + strconv.Itoa(updateCount) + " Episode. \n Raw Message: \n" + message,
 		},
 	)
 

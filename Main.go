@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher"
 	"time"
 )
 

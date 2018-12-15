@@ -19,6 +19,8 @@ services:
       dockerfile: Serieswatcher-go.Dockerfile
     ports:
       - "8080:8080"
+    volumes:
+     - ./Images:/Images
     depends_on:
       - mysql
     links:

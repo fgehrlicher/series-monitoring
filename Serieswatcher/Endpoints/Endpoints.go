@@ -2,9 +2,9 @@ package Endpoints
 
 import (
 	"net/http"
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Config"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Config"
 	"database/sql"
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
 	"github.com/fatih/color"
 	"fmt"
 	"os"

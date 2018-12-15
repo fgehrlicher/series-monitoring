@@ -2,7 +2,7 @@ package Models
 
 import (
 	"database/sql"
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Config"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Config"
 	"errors"
 )
 

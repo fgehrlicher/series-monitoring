@@ -2,7 +2,7 @@ package Endpoints
 
 import (
 	"net/http"
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"database/sql"

@@ -1,11 +1,11 @@
 package Server
 
 import (
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Config"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Config"
 	"github.com/gorilla/mux"
 	"net/http"
 	"github.com/fatih/color"
-	"bitbucket.org/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Endpoints"
+	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Endpoints"
 	"time"
 	"os"
 	"os/signal"
@@ -425,7 +425,7 @@ func Init() {
 			"message": "Success",
 			"Steps": [
 				{
-					"message": "Imported 4 Episodes for Series: Archer"
+					"message": "Imported 4 Episode for Series: Archer"
 				},
 				....
 			]
@@ -533,7 +533,7 @@ func Init() {
 			"message": "Success",
 			"Steps": [
 				{
-					"message": "Imported 4 Episodes for Series: Archer"
+					"message": "Imported 4 Episode for Series: Archer"
 				}
 			]
 		}

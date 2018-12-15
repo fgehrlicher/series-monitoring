@@ -6,17 +6,10 @@ RUN mkdir /user && \
 
 RUN apk add --no-cache ca-certificates git
 
-COPY . /go/src/bitbucket.org/fabian_gehrlicher/series-watcher-v3
+COPY . /go/src/gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3
+WORKDIR /go/src/gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3
 
-RUN go get github.com/gorilla/mux
-RUN go get github.com/go-sql-driver/mysql
-RUN go get github.com/fatih/color
-RUN go get github.com/PuerkitoBio/goquery
-RUN go get github.com/common-nighthawk/go-figure
-RUN go get github.com/gorilla/handlers
-
-WORKDIR /go/src/bitbucket.org/fabian_gehrlicher/series-watcher-v3
-
+RUN go dep ensure
 RUN CGO_ENABLED=0 go build \
     -installsuffix 'static' \
     -o /app .
@@ -27,7 +20,7 @@ FROM scratch AS final
 
 COPY --from=builder /user/group /user/passwd /etc/
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /go/src/bitbucket.org/fabian_gehrlicher/series-watcher-v3/config.json /config.json
+COPY --from=builder /go/src/gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/config.json /config.json
 COPY --from=builder /app /app
 
 USER nobody:nobody

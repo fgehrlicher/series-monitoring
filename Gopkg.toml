@@ -1,0 +1,27 @@
+[[constraint]]
+  name = "github.com/PuerkitoBio/goquery"
+  version = "1.5.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/common-nighthawk/go-figure"
+
+[[constraint]]
+  name = "github.com/fatih/color"
+  version = "1.7.0"
+
+[[constraint]]
+  name = "github.com/go-sql-driver/mysql"
+  version = "1.4.1"
+
+[[constraint]]
+  name = "github.com/gorilla/handlers"
+  version = "1.4.0"
+
+[[constraint]]
+  name = "github.com/gorilla/mux"
+  version = "1.6.2"
+
+[prune]
+  go-tests = true
+  unused-packages = true
