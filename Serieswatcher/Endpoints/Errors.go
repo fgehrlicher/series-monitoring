@@ -117,6 +117,7 @@ func handleError(response http.ResponseWriter, request *http.Request, err error,
 	if internalErr != nil {
 		fmt.Fprintln(os.Stderr, color.RedString("[ERROR STACK] "+err.Error()+"\n"))
 	}
+	defer database.Close()
 
 	response.WriteHeader(errorCode)
 	json.NewEncoder(response).Encode(Message{errorMessage})

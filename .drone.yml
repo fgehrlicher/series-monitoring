@@ -35,4 +35,3 @@ pipeline:
     script:
       - docker pull registry.fge.cloud/fabiangehrlicher/series-watcher:latest
       - docker pull registry.fge.cloud/fabiangehrlicher/series-watcher-database:latest
-      - cd /root/docker && ls -la
