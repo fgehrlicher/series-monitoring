@@ -1,6 +1,6 @@
 package Parser
 
-import "gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
+import "github.com/fgehrlicher/series-monitoring/Series-Monitoring/Models"
 
 const (
 	CoverImagesPath   = "Series/"

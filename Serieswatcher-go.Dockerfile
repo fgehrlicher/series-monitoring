@@ -23,8 +23,15 @@ FROM scratch AS final
 
 COPY --from=builder /user/group /user/passwd /etc/
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /go/src/gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/config.json /config.json
+COPY --from=builder /go/src/github.com/fgehrlicher/series-monitoringconfig.json /config.json
 COPY --from=builder /app /app
+
+ENV SUBDOMAIN gitea.fge.cloud
+ENV PORT 443
+ENV REVERSE_PROXY_URL 443
+
+COPY ./register_subdomain.sh /register_subdomain
+RUN chmod +x /register_subdomain
 
 USER nobody:nobody
 

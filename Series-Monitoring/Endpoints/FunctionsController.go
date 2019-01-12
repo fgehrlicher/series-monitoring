@@ -3,13 +3,13 @@ package Endpoints
 import (
 	"net/http"
 	"github.com/gorilla/mux"
-	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
+	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Models"
 	"database/sql"
-	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Parser"
+	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Parser"
 	"strconv"
 	"github.com/fatih/color"
 	"encoding/json"
-	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Maintenance"
+	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Maintenance"
 )
 
 func UpdateSeries(response http.ResponseWriter, request *http.Request) {

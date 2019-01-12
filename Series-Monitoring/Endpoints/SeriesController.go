@@ -2,11 +2,11 @@ package Endpoints
 
 import (
 	"net/http"
-	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Models"
+	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Models"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"database/sql"
-	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher/Parser"
+	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Parser"
 	"strings"
 	"strconv"
 	"errors"

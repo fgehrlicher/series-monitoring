@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gitea.fge.cloud/fabian_gehrlicher/series-watcher-v3/Serieswatcher"
+	"github.com/fgehrlicher/series-monitoring/Series-Monitoring"
 	"time"
 )
 
