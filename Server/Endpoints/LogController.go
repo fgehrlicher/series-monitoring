@@ -3,7 +3,7 @@ package Endpoints
 import (
 	"net/http"
 	"encoding/json"
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Models"
+	"github.com/fgehrlicher/series-monitoring/Server/Models"
 	"strconv"
 )
 

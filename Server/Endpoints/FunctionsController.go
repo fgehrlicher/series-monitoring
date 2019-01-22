@@ -3,13 +3,13 @@ package Endpoints
 import (
 	"net/http"
 	"github.com/gorilla/mux"
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Models"
+	"github.com/fgehrlicher/series-monitoring/Server/Models"
 	"database/sql"
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Parser"
+	"github.com/fgehrlicher/series-monitoring/Server/Parser"
 	"strconv"
 	"github.com/fatih/color"
 	"encoding/json"
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Maintenance"
+	"github.com/fgehrlicher/series-monitoring/Server/Maintenance"
 )
 
 func UpdateSeries(response http.ResponseWriter, request *http.Request) {

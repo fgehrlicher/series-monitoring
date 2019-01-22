@@ -4,7 +4,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Config"
+	"github.com/fgehrlicher/series-monitoring/Server/Config"
 	"path"
 	"path/filepath"
 	"io"

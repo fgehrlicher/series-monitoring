@@ -1,11 +1,11 @@
 package Maintenance
 
 import (
-		"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Models"
+		"github.com/fgehrlicher/series-monitoring/Server/Models"
 	"net/http"
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Parser"
+	"github.com/fgehrlicher/series-monitoring/Server/Parser"
 	"os"
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Config"
+	"github.com/fgehrlicher/series-monitoring/Server/Config"
 	"path"
 	"strings"
 )

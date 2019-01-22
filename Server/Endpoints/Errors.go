@@ -2,10 +2,10 @@ package Endpoints
 
 import (
 	"net/http"
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Models"
+	"github.com/fgehrlicher/series-monitoring/Server/Models"
 	"encoding/json"
 	"errors"
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Config"
+	"github.com/fgehrlicher/series-monitoring/Server/Config"
 	"github.com/fatih/color"
 	"database/sql"
 	"fmt"

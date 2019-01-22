@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring"
+	"github.com/fgehrlicher/series-monitoring/Server"
 	"time"
 )
 

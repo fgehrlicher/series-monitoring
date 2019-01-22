@@ -2,7 +2,7 @@ package Models
 
 import (
 	"database/sql"
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Config"
+	"github.com/fgehrlicher/series-monitoring/Server/Config"
 	"errors"
 )
 

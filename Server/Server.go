@@ -1,11 +1,11 @@
 package Server
 
 import (
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Config"
+	"github.com/fgehrlicher/series-monitoring/Server/Config"
 	"github.com/gorilla/mux"
 	"net/http"
 	"github.com/fatih/color"
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Endpoints"
+	"github.com/fgehrlicher/series-monitoring/Server/Endpoints"
 	"time"
 	"os"
 	"os/signal"

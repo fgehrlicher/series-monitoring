@@ -1,6 +1,6 @@
 package Parser
 
-import "github.com/fgehrlicher/series-monitoring/Series-Monitoring/Models"
+import "github.com/fgehrlicher/series-monitoring/Server/Models"
 
 const (
 	CoverImagesPath   = "Series/"

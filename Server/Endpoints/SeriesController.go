@@ -2,11 +2,11 @@ package Endpoints
 
 import (
 	"net/http"
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Models"
+	"github.com/fgehrlicher/series-monitoring/Server/Models"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"database/sql"
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Parser"
+	"github.com/fgehrlicher/series-monitoring/Server/Parser"
 	"strings"
 	"strconv"
 	"errors"

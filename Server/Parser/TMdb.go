@@ -5,7 +5,7 @@ import (
 	"strings"
 	"path"
 	"net/http"
-	"github.com/fgehrlicher/series-monitoring/Series-Monitoring/Models"
+	"github.com/fgehrlicher/series-monitoring/Server/Models"
 	"strconv"
 	"errors"
 	"time"
